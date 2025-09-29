@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -32,6 +34,33 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     #[ORM\Column]
     private ?string $password = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $nom = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $prenom = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $licence = null;
+
+    /**
+     * @var Collection<int, equipe>
+     */
+    #[ORM\ManyToMany(targetEntity: equipe::class, inversedBy: 'users')]
+    private Collection $equipe;
+
+    /**
+     * @var Collection<int, User>
+     */
+    #[ORM\ManyToMany(targetEntity: User::class, mappedBy: 'users')]
+    private Collection $users;
+
+    public function __construct()
+    {
+        $this->equipe = new ArrayCollection();
+        $this->users = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -112,5 +141,92 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function eraseCredentials(): void
     {
         // @deprecated, to be removed when upgrading to Symfony 8
+    }
+
+    public function getNom(): ?string
+    {
+        return $this->nom;
+    }
+
+    public function setNom(string $nom): static
+    {
+        $this->nom = $nom;
+
+        return $this;
+    }
+
+    public function getPrenom(): ?string
+    {
+        return $this->prenom;
+    }
+
+    public function setPrenom(string $prenom): static
+    {
+        $this->prenom = $prenom;
+
+        return $this;
+    }
+
+    public function getLicence(): ?string
+    {
+        return $this->licence;
+    }
+
+    public function setLicence(?string $licence): static
+    {
+        $this->licence = $licence;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, equipe>
+     */
+    public function getEquipe(): Collection
+    {
+        return $this->equipe;
+    }
+
+    public function addEquipe(equipe $equipe): static
+    {
+        if (!$this->equipe->contains($equipe)) {
+            $this->equipe->add($equipe);
+        }
+
+        return $this;
+    }
+
+    public function removeEquipe(equipe $equipe): static
+    {
+        $this->equipe->removeElement($equipe);
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, User>
+     */
+    public function getUsers(): Collection
+    {
+        return $this->users;
+    }
+
+    public function addUser(User $user): static
+    {
+        if (!$this->users->contains($user)) {
+            $this->users->add($user);
+            $user->addUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeUser(User $user): static
+    {
+        if ($this->users->removeElement($user)) {
+            $user->removeUser($this);
+        }
+
+        return $this;
     }
 }
