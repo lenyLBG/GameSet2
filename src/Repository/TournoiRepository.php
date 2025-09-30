@@ -23,4 +23,23 @@ class TournoiRepository extends ServiceEntityRepository
             $this->getEntityManager()->flush();
         }
     }
+
+    /**
+     * Search tournois by a query string over name, sport and format.
+     * Returns all tournois if $q is empty or null.
+     *
+     * @return Tournoi[]
+     */
+    public function findBySearch(?string $q): array
+    {
+        $qb = $this->createQueryBuilder('t')
+            ->orderBy('t.dateDebut', 'DESC');
+
+        if ($q !== null && trim($q) !== '') {
+            $qb->andWhere('t.nom LIKE :q OR t.sport LIKE :q OR t.format LIKE :q')
+               ->setParameter('q', '%'.trim($q).'%');
+        }
+
+        return $qb->getQuery()->getResult();
+    }
 }

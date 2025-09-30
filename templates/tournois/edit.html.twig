@@ -1,0 +1,50 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier Tournoi - {{ tournoi.nom }}{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card card-custom shadow-sm">
+                <div class="card-body">
+                    <h2 class="mb-3">Modifier le tournoi</h2>
+                    <form method="post" action="{{ path('app_tournoi_edit', {'id': tournoi.id}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('edit' ~ tournoi.id) }}">
+
+                        <div class="mb-3">
+                            <label for="nom" class="form-label">Nom</label>
+                            <input type="text" id="nom" name="nom" class="form-control" value="{{ tournoi.nom }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="sport" class="form-label">Sport</label>
+                            <input type="text" id="sport" name="sport" class="form-control" value="{{ tournoi.sport }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="format" class="form-label">Format</label>
+                            <input type="text" id="format" name="format" class="form-control" value="{{ tournoi.format }}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="date_debut" class="form-label">Date de début</label>
+                            <input type="date" id="date_debut" name="date_debut" class="form-control" value="{{ tournoi.dateDebut ? tournoi.dateDebut|date('Y-m-d') : '' }}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="date_fin" class="form-label">Date de fin</label>
+                            <input type="date" id="date_fin" name="date_fin" class="form-control" value="{{ tournoi.dateFin ? tournoi.dateFin|date('Y-m-d') : '' }}">
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-primary">Enregistrer</button>
+                            <a href="{{ path('app_tournoi_show', {'id': tournoi.id}) }}" class="btn btn-secondary">Annuler</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

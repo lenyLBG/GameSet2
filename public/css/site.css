@@ -1,0 +1,72 @@
+/* site.css - styles for GameSet tournament pages */
+:root{
+    --primary:#0d6efd;
+    --bg-hero:#0b3d91;
+    --muted:#6c757d;
+}
+
+body{
+    background: #f8f9fa;
+}
+
+.hero{
+    background: linear-gradient(135deg, rgba(11,61,145,0.95) 0%, rgba(13,102,253,0.9) 100%);
+    color: #fff;
+    border-radius: 8px;
+}
+
+.hero .lead{
+    opacity: .95;
+}
+
+.card-custom{
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.card-custom .card-body{
+    padding: 1.25rem;
+}
+
+.card-custom .card-footer{
+    padding: .75rem 1.25rem;
+}
+
+.form-control:focus{
+    box-shadow: 0 0 0 .15rem rgba(13,102,253,0.25);
+}
+
+.btn-outline-primary{
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.btn-outline-primary:hover{
+    background: var(--primary);
+    color: #fff;
+}
+
+.small.text-light-600{
+    opacity: .85;
+}
+
+.alert{
+    border-radius: 6px;
+}
+
+/* hero actions */
+.hero-actions { gap: .75rem; }
+.form-control-search{
+    min-width: 220px;
+    max-width: 420px;
+    border-radius: 28px;
+    padding: .5rem 1rem;
+}
+.btn-search{
+    border-radius: 28px;
+    padding: .45rem 1rem;
+}
+.btn-new{
+    border-radius: 28px;
+    padding: .5rem 1rem;
+}
