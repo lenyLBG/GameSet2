@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use DateTime;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -22,21 +23,46 @@ final class TournoisController extends AbstractController
     #[Route('/tournoi/create', name: 'app_tournoi_create', methods: ['POST'])]
     public function create(Request $request, ManagerRegistry $doctrine): Response
     {
-        $nom = $request->request->get('nom');
-        $description = $request->request->get('description');
+        $nom = trim((string) $request->request->get('nom', ''));
+        $sport = trim((string) $request->request->get('sport', ''));
+        $format = trim((string) $request->request->get('format', ''));
+        $dateDebutStr = $request->request->get('date_debut');
+        $dateFinStr = $request->request->get('date_fin');
 
-        // Minimal validation
-        if (!$nom) {
-            $this->addFlash('error', 'Le nom est requis.');
+        // Basic validation
+        if ($nom === '' || $sport === '') {
+            $this->addFlash('error', 'Le nom et le sport sont requis.');
+            return $this->redirectToRoute('app_tournois');
+        }
+
+        // Parse dates (expecting YYYY-MM-DD from input[type=date])
+        $dateDebut = null;
+        $dateFin = null;
+        try {
+            if (!empty($dateDebutStr)) {
+                $dateDebut = new \DateTime($dateDebutStr);
+            }
+            if (!empty($dateFinStr)) {
+                $dateFin = new \DateTime($dateFinStr);
+            }
+        } catch (\Exception $e) {
+            $this->addFlash('error', 'Format de date invalide.');
             return $this->redirectToRoute('app_tournois');
         }
 
         $tournoi = new Tournoi();
         $tournoi->setNom($nom);
-        // store description in "format" if you don't have a dedicated field
-        $tournoi->setFormat($description ?: null);
-        $tournoi->setSport('inconnu');
-        $tournoi->setDateDebut(new \DateTime());
+        $tournoi->setSport($sport);
+        $tournoi->setFormat($format !== '' ? $format : null);
+        if ($dateDebut) {
+            $tournoi->setDateDebut($dateDebut);
+        } else {
+            // fallback to today if not provided
+            $tournoi->setDateDebut(new \DateTime());
+        }
+        if ($dateFin) {
+            $tournoi->setDateFin($dateFin);
+        }
 
         $em = $doctrine->getManager();
         $em->persist($tournoi);
