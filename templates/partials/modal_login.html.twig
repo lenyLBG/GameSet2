@@ -1,0 +1,138 @@
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true"
+     data-bs-backdrop="static" data-bs-keyboard="false"> <!-- évite fermetures accidentelles -->
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header border-0">
+        <h5 class="modal-title">Gameset</h5>
+        <!-- (bouton de fermeture optionnel)
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+        -->
+      </div>
+
+      <div class="modal-body">
+        <!-- Segmented control -->
+        <div class="nav nav-pills bg-light rounded-pill p-1 d-inline-flex mb-3" role="tablist">
+          <button class="nav-link rounded-pill px-4 text-dark bg-white active"
+                  id="tab-login"
+                  data-bs-toggle="pill" data-bs-target="#pane-login"
+                  type="button" role="tab" aria-controls="pane-login" aria-selected="true">
+            Connexion
+          </button>
+
+          <button class="nav-link rounded-pill px-4 text-secondary"
+                  id="tab-signup"
+                  data-bs-toggle="pill" data-bs-target="#pane-signup"
+                  type="button" role="tab" aria-controls="pane-signup" aria-selected="false">
+            Inscription
+          </button>
+        </div>
+
+        <!-- Contenus -->
+        <div class="tab-content">
+          <div class="tab-pane fade show active" id="pane-login" role="tabpanel" aria-labelledby="tab-login">
+            <!-- Formulaire connexion -->
+            <form onsubmit="event.preventDefault()"> <!-- empêche le submit pendant les tests -->
+              <div class="mb-3">
+                <label class="form-label">Nom complet</label>
+                <input type="text" class="form-control">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-control">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Mot de passe</label>
+                <input type="password" class="form-control">
+              </div>
+              <button type="button" class="btn btn-dark w-100">Se connecter</button>
+            </form>
+          </div>
+
+          <div class="tab-pane fade" id="pane-signup" role="tabpanel" aria-labelledby="tab-signup">
+            <!-- Formulaire inscription -->
+            <form onsubmit="event.preventDefault()"> <!-- empêche le submit pendant les tests -->
+              <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-control">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Mot de passe</label>
+                <input type="password" class="form-control">
+              </div>
+              <button type="button" class="btn btn-dark w-100">Créer mon compte</button>
+            </form>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const modalEl   = document.getElementById('exampleModal');
+  const loginBtn  = document.getElementById('tab-login');
+  const signupBtn = document.getElementById('tab-signup');
+
+  if (!modalEl) return;
+
+  // --- 1) Pills : neutres + gestion de l’état actif (blanc) sans CSS global
+  [loginBtn, signupBtn].forEach(b => b && b.setAttribute('type', 'button'));
+
+  document.querySelectorAll('[data-bs-toggle="pill"]').forEach(btn => {
+    btn.addEventListener('shown.bs.tab', function (e) {
+      // reset
+      loginBtn.classList.remove('bg-white','text-dark');
+      signupBtn.classList.remove('bg-white','text-dark');
+      loginBtn.classList.add('text-secondary');
+      signupBtn.classList.add('text-secondary');
+      // actif
+      const activeBtn = e.target;
+      activeBtn.classList.add('bg-white','text-dark');
+      activeBtn.classList.remove('text-secondary');
+    });
+  });
+
+  // --- 2) Forms : empêcher submit et Enter pendant les tests
+  modalEl.querySelectorAll('form').forEach(form => {
+    form.addEventListener('submit', e => e.preventDefault());
+    form.addEventListener('keydown', e => {
+      if (e.key === 'Enter') e.preventDefault();
+    });
+  });
+
+  // --- 3) Stop propagation des clics à l'intérieur du contenu du modal
+  const content = modalEl.querySelector('.modal-content');
+  if (content) {
+    ['click', 'mousedown', 'mouseup'].forEach(evt =>
+      content.addEventListener(evt, e => e.stopPropagation())
+    );
+  }
+
+  // --- 4) Empêcher la fermeture si l'action vient d’une interaction interne non voulue
+  //      (pills, inputs, etc.) mais autoriser les vrais dismiss (bouton close, etc.)
+  modalEl.addEventListener('hide.bs.modal', function (e) {
+    const active = document.activeElement;
+
+    // Autoriser explicitement les éléments qui demandent un dismiss
+    if (active && active.closest('[data-bs-dismiss="modal"]')) return;
+
+    // Bloquer si le focus est sur une pill
+    if (active && (active === loginBtn || active === signupBtn)) {
+      e.preventDefault();
+      return;
+    }
+
+    // Bloquer si le focus est dans un formulaire/élément interactif du modal
+    if (active && modalEl.contains(active) && (
+        active.matches('input, select, textarea, button, label, [role="tab"]') ||
+        active.closest('form')
+      )) {
+      e.preventDefault();
+    }
+  });
+});
+</script>
