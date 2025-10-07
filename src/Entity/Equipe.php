@@ -34,9 +34,18 @@ class Equipe
     private Collection $rencontres;
 
     /**
+     * @var Collection<int, Rencontre>
+     */
+    #[ORM\OneToMany(targetEntity: Rencontre::class, mappedBy: 'equipeVisiteur')]
+    private Collection $rencontresVisiteur;
+
+    /**
      * @var Collection<int, tournoi>
      */
-    #[ORM\ManyToMany(targetEntity: tournoi::class, inversedBy: 'equipes')]
+    /**
+     * @var Collection<int, Tournoi>
+     */
+    #[ORM\ManyToMany(targetEntity: Tournoi::class, inversedBy: 'equipes')]
     private Collection $tournois;
 
     /**
@@ -48,6 +57,7 @@ class Equipe
     public function __construct()
     {
         $this->rencontres = new ArrayCollection();
+    $this->rencontresVisiteur = new ArrayCollection();
         $this->tournois = new ArrayCollection();
         $this->users = new ArrayCollection();
     }
@@ -143,6 +153,14 @@ class Equipe
     }
 
     /**
+     * @return Collection<int, Rencontre>
+     */
+    public function getRencontresVisiteur(): Collection
+    {
+        return $this->rencontresVisiteur;
+    }
+
+    /**
      * @return Collection<int, tournoi>
      */
     public function getTournois(): Collection
@@ -150,7 +168,7 @@ class Equipe
         return $this->tournois;
     }
 
-    public function addTournoi(tournoi $tournoi): static
+    public function addTournoi(Tournoi $tournoi): static
     {
         if (!$this->tournois->contains($tournoi)) {
             $this->tournois->add($tournoi);
@@ -159,7 +177,7 @@ class Equipe
         return $this;
     }
 
-    public function removeTournoi(tournoi $tournoi): static
+    public function removeTournoi(Tournoi $tournoi): static
     {
         $this->tournois->removeElement($tournoi);
 

@@ -1,0 +1,30 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Rencontre{% endblock %}
+
+{% block body %}
+    <h1>Rencontre</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ rencontre.id }}</td>
+            </tr>
+            <tr>
+                <th>Round</th>
+                <td>{{ rencontre.round }}</td>
+            </tr>
+            <tr>
+                <th>Points</th>
+                <td>{{ rencontre.points }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_rencontre_index') }}">back to list</a>
+
+    <a href="{{ path('app_rencontre_edit', {'id': rencontre.id}) }}">edit</a>
+
+    {{ include('rencontre/_delete_form.html.twig') }}
+{% endblock %}

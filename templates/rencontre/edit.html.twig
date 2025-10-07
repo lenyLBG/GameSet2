@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Rencontre{% endblock %}
+
+{% block body %}
+    <h1>Edit Rencontre</h1>
+
+    {{ include('rencontre/_form.html.twig', {'button_label': 'Update'}) }}
+
+    <a href="{{ path('app_rencontre_index') }}">back to list</a>
+
+    {{ include('rencontre/_delete_form.html.twig') }}
+{% endblock %}

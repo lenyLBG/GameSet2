@@ -3,10 +3,6 @@
 {% block title %}GameSet - Tournois{% endblock %}
 
 {% block body %}
-<style>
-    .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
-    .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
-</style>
 
 <section class="hero py-4 mb-4 text-center text-white">
     <div class="container d-flex flex-column flex-md-row align-items-center justify-content-between gap-3">
@@ -21,9 +17,9 @@
                 <button class="btn btn-outline-light btn-search" type="submit">Search</button>
             </form>
 
-            <button type="button" class="btn btn-light btn-new" data-bs-toggle="modal" data-bs-target="#exampleModal">
-              Nouveau Tournoi
-            </button>
+                        <button type="button" class="btn btn-light btn-new" data-bs-toggle="modal" data-bs-target="#tournois">
+                            Nouveau Tournoi
+                        </button>
         </div>
     </div>
 </section>
@@ -72,7 +68,7 @@
     <script>
         // If URL ends with #create (header link points to /tournoi#create), open the modal
         if (window.location.hash === '#create') {
-            var modalEl = document.getElementById('exampleModal');
+            var modalEl = document.getElementById('tournois'); // Corrected ID to match the button's data-bs-target
             if (modalEl) {
                 var modal = new bootstrap.Modal(modalEl);
                 modal.show();
