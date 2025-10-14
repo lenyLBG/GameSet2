@@ -5,71 +5,81 @@ const app = startStimulusApp();
 // app.register('some_controller_name', SomeImportedController);
 
 // Custom modal + registration JS
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', () => {
 	try {
-		// Pills styling: keep active pill white
-		const loginBtn  = document.getElementById('tab-login');
-		const signupBtn = document.getElementById('tab-signup');
+		const loginModalEl = document.getElementById('modal-login');
+		const loginTabBtn = document.getElementById('tab-login');
+		const signupTabBtn = document.getElementById('tab-signup');
 
-		[loginBtn, signupBtn].forEach(b => b && b.setAttribute('type', 'button'));
-		document.querySelectorAll('[data-bs-toggle="pill"]').forEach(btn => {
-			btn.addEventListener('shown.bs.tab', function (e) {
-				if (!loginBtn || !signupBtn) return;
-				loginBtn.classList.remove('bg-white','text-dark');
-				signupBtn.classList.remove('bg-white','text-dark');
-				loginBtn.classList.add('text-secondary');
-				signupBtn.classList.add('text-secondary');
-				const activeBtn = e.target;
-				activeBtn.classList.add('bg-white','text-dark');
+		// Make sure tab buttons are real buttons
+		[loginTabBtn, signupTabBtn].forEach(b => b && b.setAttribute('type', 'button'));
+
+		// helper to style active pill
+		function stylePills(activeBtn) {
+			if (!loginTabBtn || !signupTabBtn) return;
+			loginTabBtn.classList.remove('bg-white', 'text-dark');
+			signupTabBtn.classList.remove('bg-white', 'text-dark');
+			loginTabBtn.classList.add('text-secondary');
+			signupTabBtn.classList.add('text-secondary');
+			if (activeBtn) {
+				activeBtn.classList.add('bg-white', 'text-dark');
 				activeBtn.classList.remove('text-secondary');
-			});
+			}
+		}
+
+		document.querySelectorAll('[data-bs-toggle="pill"]').forEach(btn => {
+			btn.addEventListener('shown.bs.tab', (e) => stylePills(e.target));
 		});
 
-		// AJAX registration form submit inside modal
-		document.addEventListener('submit', function (e) {
+		// When the modal opens, ensure the active pill visual is correct
+		if (loginModalEl) {
+			loginModalEl.addEventListener('shown.bs.modal', () => {
+				const active = document.querySelector('.nav-pills .nav-link.active');
+				stylePills(active || loginTabBtn);
+			});
+		}
+
+		// Handle AJAX registration submit inside modal
+		document.addEventListener('submit', (e) => {
 			const form = e.target;
-			if (form && form.id === 'form-register') {
-				e.preventDefault();
+			if (!(form && form.id === 'form-register')) return;
+			e.preventDefault();
 
-				const url = form.getAttribute('action') || window.location.pathname;
-				const data = new FormData(form);
+			const url = form.getAttribute('action') || window.location.pathname;
+			const data = new FormData(form);
 
-				fetch(url, {
-					method: 'POST',
-					headers: {
-						'X-Requested-With': 'XMLHttpRequest'
-					},
-					body: data
-				}).then(async resp => {
-					if (resp.ok) {
-						const json = await resp.json();
-						if (json.redirect) {
-							window.location.href = json.redirect;
-						} else {
-							window.location.reload();
-						}
+			fetch(url, {
+				method: 'POST',
+				headers: { 'X-Requested-With': 'XMLHttpRequest' },
+				body: data,
+			}).then(async (resp) => {
+				if (resp.ok) {
+					const json = await resp.json().catch(() => null);
+					if (json && json.redirect) {
+						window.location.href = json.redirect;
 						return;
 					}
+					window.location.reload();
+					return;
+				}
 
-					// On validation error, server returns HTML fragment to inject
-					if (resp.status === 400) {
-						const json = await resp.json().catch(() => null);
-						if (json && json.html) {
-							const container = document.querySelector('#pane-signup');
-							if (container) {
-								container.innerHTML = json.html;
-								// re-open the signup pill
-								const signupTab = document.querySelector('#tab-signup');
-								if (signupTab) signupTab.click();
-							}
+				if (resp.status === 400) {
+					const json = await resp.json().catch(() => null);
+					if (json && json.html) {
+						const pane = document.querySelector('#pane-signup');
+						if (pane) {
+							pane.innerHTML = json.html;
+							// Activate signup pill
+							const tab = document.querySelector('#tab-signup');
+							if (tab) tab.click();
 						}
 					}
-				}).catch(err => {
-					console.error('Registration request failed', err);
-				});
-			}
+				}
+			}).catch((err) => {
+				console.error('Registration AJAX failed', err);
+			});
 		});
 	} catch (err) {
-		console.warn('Modal registration JS failed to init', err);
+		console.warn('Modal registration JS init error', err);
 	}
 });

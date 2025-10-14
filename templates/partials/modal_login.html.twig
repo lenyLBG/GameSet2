@@ -1,3 +1,46 @@
+{# Clean login/register modal partial - use id modal-login #}
+<div class="modal fade" id="modal-login" tabindex="-1" aria-labelledby="modal-login-label" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0">
+        <h5 class="modal-title" id="modal-login-label">GameSet</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="d-flex justify-content-center mb-3">
+          <div class="nav nav-pills" role="tablist" aria-label="Connexion et Inscription">
+            <button class="nav-link active" id="tab-login" data-bs-toggle="pill" data-bs-target="#pane-login" type="button" role="tab" aria-controls="pane-login" aria-selected="true">Connexion</button>
+            <button class="nav-link" id="tab-signup" data-bs-toggle="pill" data-bs-target="#pane-signup" type="button" role="tab" aria-controls="pane-signup" aria-selected="false">Inscription</button>
+          </div>
+        </div>
+
+        <div class="tab-content">
+          <div class="tab-pane fade show active" id="pane-login" role="tabpanel" aria-labelledby="tab-login">
+            <form id="form-login" method="post" action="{{ path('app_login') }}">
+              <div class="mb-3">
+                <label for="login-email" class="form-label">Email</label>
+                <input id="login-email" name="_username" type="email" class="form-control" autocomplete="email" required autofocus>
+              </div>
+              <div class="mb-3">
+                <label for="login-password" class="form-label">Mot de passe</label>
+                <input id="login-password" name="_password" type="password" class="form-control" autocomplete="current-password" required>
+              </div>
+              <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+              <div class="d-grid">
+                <button type="submit" class="btn btn-dark">Se connecter</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="tab-pane fade" id="pane-signup" role="tabpanel" aria-labelledby="tab-signup">
+            {{ render(path('app_register_modal')) }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 <!-- Modal -->
 <div class="modal fade" id="modal-login" tabindex="-1" aria-labelledby="modal-login-label" aria-hidden="true"
   data-bs-backdrop="static" data-bs-keyboard="false"> <!-- évite fermetures accidentelles -->
