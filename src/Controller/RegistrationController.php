@@ -39,4 +39,15 @@ class RegistrationController extends AbstractController
             'registrationForm' => $form,
         ]);
     }
+
+    #[Route('/register-modal', name: 'app_register_modal')]
+    public function registerModal(): Response
+    {
+        $user = new User();
+        $form = $this->createForm(RegistrationFormType::class, $user);
+
+        return $this->render('registration/_modal_register.html.twig', [
+            'registrationForm' => $form->createView(),
+        ]);
+    }
 }
