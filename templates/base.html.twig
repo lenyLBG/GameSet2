@@ -4,9 +4,9 @@
         <meta charset="UTF-8">
         <title>{% block title %}Welcome!{% endblock %}</title>
         <link rel="icon" href="{{ asset('img/GameSet.webp') }}">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+        {# header intentionally not included here; it's added inside the <body> so modals are part of the document body #}
         {% block stylesheets %}
-            <link rel="stylesheet" href="{{ asset('css/site.css') }}">
         {% endblock %}
 
         {% block javascripts %}
@@ -16,11 +16,10 @@
     </head>
     <body>
         {% include 'header.html.twig' %}
-
         {% block body %}
-
-
-
+        
+        
+        
         {% endblock %}
         {% include 'footer.html.twig' %}
     </body>

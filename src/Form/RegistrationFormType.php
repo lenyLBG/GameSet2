@@ -7,9 +7,9 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\IsTrue;
-use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
 
@@ -20,14 +20,14 @@ class RegistrationFormType extends AbstractType
         $builder
             ->add('nom', TextType::class, [
                 'constraints' => [
-                    new NotBlank(['message' => 'Veuillez entrer votre nom.']),
-                    new Length(['min' => 2, 'minMessage' => 'Le nom doit faire au moins {{ limit }} caractères', 'max' => 255]),
+                    new NotBlank(['message' => 'Veuillez indiquer votre nom.']),
+                    new Length(['min' => 2, 'minMessage' => 'Le nom doit contenir au moins {{ limit }} caractères', 'max' => 255]),
                 ],
             ])
             ->add('prenom', TextType::class, [
                 'constraints' => [
-                    new NotBlank(['message' => 'Veuillez entrer votre prénom.']),
-                    new Length(['min' => 2, 'minMessage' => 'Le prénom doit faire au moins {{ limit }} caractères', 'max' => 255]),
+                    new NotBlank(['message' => 'Veuillez indiquer votre prénom.']),
+                    new Length(['min' => 2, 'minMessage' => 'Le prénom doit contenir au moins {{ limit }} caractères', 'max' => 255]),
                 ],
             ])
             ->add('email')

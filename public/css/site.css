@@ -66,6 +66,31 @@ body{
     .navbar-brand img{ width: 64px; max-height:48px; }
 }
 .header-actions{ display:flex; align-items:center; gap:.6rem; }
+
+/* Ensure our modals sit above any fixed headers/toolbar (like profiler) */
+:root{
+    --app-modal-zindex: 200000;
+    --app-backdrop-zindex: 199999;
+}
+
+/* Force modal z-indexes to a very high level so they never get hidden */
+.modal{ z-index: var(--app-modal-zindex) !important; }
+.modal-backdrop{ z-index: var(--app-backdrop-zindex) !important; }
+.modal.show .modal-dialog{ z-index: calc(var(--app-modal-zindex) + 1) !important; }
+
+/* Slight visual tweaks for modal content */
+.modal .modal-content{ border-radius: 12px; overflow: hidden; }
+.modal .modal-body{ padding-top: .5rem; padding-bottom: 1.25rem; }
+.modal .nav-pills .nav-link{ padding: .45rem .95rem; border-radius: 999px; }
+
+/* registration fragment inside modal */
+.modal-register .register-form{ padding: .8rem; }
+.modal-register .form-control{ border-radius: 8px; }
+.modal-register .form-check-label{ font-weight:500; }
+
+/* Keep backdrop slightly dark but not harsh */
+.modal-backdrop.show{ background-color: rgba(0,0,0,0.45); }
+
 .header-actions .btn{ padding:.45rem .9rem; border-radius:10px; }
 .header-actions .btn.text-bg-dark{ background: rgba(255,255,255,0.08); color: #fff; }
 .header-actions .btn.text-bg-dark:hover{ transform: translateY(-2px); box-shadow: 0 8px 30px rgba(17,24,39,0.12); }
