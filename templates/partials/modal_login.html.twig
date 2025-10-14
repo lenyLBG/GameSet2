@@ -1,11 +1,13 @@
 <!-- Modal -->
 <div class="modal fade" id="modal-login" tabindex="-1" aria-labelledby="modal-login-label" aria-hidden="true"
-     data-bs-backdrop="static" data-bs-keyboard="false"> <!-- évite fermetures accidentelles -->
+  data-bs-backdrop="static" data-bs-keyboard="false"> <!-- évite fermetures accidentelles -->
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header border-0">
-        <h5 class="modal-title" id="modal-login-label">Gameset</h5>
+        <h5 class="modal-title">Gameset</h5>
+        <!-- (bouton de fermeture optionnel)
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+        -->
       </div>
 
       <div class="modal-body">
@@ -45,7 +47,7 @@
           </div>
 
           <div class="tab-pane fade" id="pane-signup" role="tabpanel" aria-labelledby="tab-signup">
-            {# Rendre le fragment du formulaire d'inscription (controller) #}
+            {# render the registration modal fragment created in RegistrationController #}
             {{ render(path('app_register_modal')) }}
           </div>
         </div>
@@ -55,5 +57,3 @@
     </div>
   </div>
 </div>
-
-{# Modal JS moved to assets/bootstrap.js to centralize scripts and avoid inline duplication #}
