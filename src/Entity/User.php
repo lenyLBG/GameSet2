@@ -45,21 +45,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $licence = null;
 
     /**
-     * @var Collection<int, equipe>
+     * @var Collection<int, Equipe>
      */
-    #[ORM\ManyToMany(targetEntity: equipe::class, inversedBy: 'users')]
+    #[ORM\ManyToMany(targetEntity: Equipe::class, inversedBy: 'users')]
     private Collection $equipe;
-
-    /**
-     * @var Collection<int, User>
-     */
-    #[ORM\ManyToMany(targetEntity: User::class, mappedBy: 'users')]
-    private Collection $users;
 
     public function __construct()
     {
         $this->equipe = new ArrayCollection();
-        $this->users = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -180,14 +173,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
-     * @return Collection<int, equipe>
+     * @return Collection<int, Equipe>
      */
     public function getEquipe(): Collection
     {
         return $this->equipe;
     }
 
-    public function addEquipe(equipe $equipe): static
+    public function addEquipe(Equipe $equipe): static
     {
         if (!$this->equipe->contains($equipe)) {
             $this->equipe->add($equipe);
@@ -196,37 +189,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function removeEquipe(equipe $equipe): static
+    public function removeEquipe(Equipe $equipe): static
     {
         $this->equipe->removeElement($equipe);
 
         return $this;
     }
 
-    /**
-     * @return Collection<int, User>
-     */
-    public function getUsers(): Collection
-    {
-        return $this->users;
-    }
-
-    public function addUser(User $user): static
-    {
-        if (!$this->users->contains($user)) {
-            $this->users->add($user);
-            $user->addUser($this);
-        }
-
-        return $this;
-    }
-
-    public function removeUser(User $user): static
-    {
-        if ($this->users->removeElement($user)) {
-            $user->removeUser($this);
-        }
-
-        return $this;
-    }
+    
 }

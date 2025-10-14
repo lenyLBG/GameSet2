@@ -19,14 +19,14 @@ class Rencontre
     #[ORM\Column]
     private ?int $points = null;
 
-    #[ORM\ManyToOne(inversedBy: 'rencontres')]
+    #[ORM\ManyToOne(targetEntity: Terrains::class, inversedBy: 'rencontres')]
     private ?Terrains $terrains = null;
 
-    #[ORM\ManyToOne(inversedBy: 'rencontres')]
-    private ?equipe $equipes = null;
+    #[ORM\ManyToOne(targetEntity: Equipe::class, inversedBy: 'rencontres')]
+    private ?Equipe $equipes = null;
 
-    #[ORM\ManyToOne(inversedBy: 'rencontres')]
-    private ?equipe $equipeVisiteur = null;
+    #[ORM\ManyToOne(targetEntity: Equipe::class, inversedBy: 'rencontresVisiteur')]
+    private ?Equipe $equipeVisiteur = null;
 
     public function getId(): ?int
     {
@@ -76,24 +76,24 @@ class Rencontre
         return $this;
     }
 
-    public function getEquipes(): ?equipe
+    public function getEquipes(): ?Equipe
     {
         return $this->equipes;
     }
 
-    public function setEquipes(?equipe $equipes): static
+    public function setEquipes(?Equipe $equipes): static
     {
         $this->equipes = $equipes;
 
         return $this;
     }
 
-    public function getEquipeVisiteur(): ?equipe
+    public function getEquipeVisiteur(): ?Equipe
     {
         return $this->equipeVisiteur;
     }
 
-    public function setEquipeVisiteur(?equipe $equipeVisiteur): static
+    public function setEquipeVisiteur(?Equipe $equipeVisiteur): static
     {
         $this->equipeVisiteur = $equipeVisiteur;
 

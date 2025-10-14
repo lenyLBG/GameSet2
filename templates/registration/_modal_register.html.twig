@@ -1,0 +1,40 @@
+{# Registration modal fragment - rendered inside the login modal #}
+<div class="register-fragment">
+  {{ form_start(registrationForm, {'action': path('app_register'), 'attr': {'id': 'form-register'}}) }}
+
+  <div class="mb-3">
+    {{ form_label(registrationForm['nom'], 'Nom') }}
+    {{ form_widget(registrationForm['nom'], {'attr': {'class': 'form-control'}}) }}
+    <div class="text-danger small">{{ form_errors(registrationForm['nom']) }}</div>
+  </div>
+
+  <div class="mb-3">
+    {{ form_label(registrationForm['prenom'], 'Prénom') }}
+    {{ form_widget(registrationForm['prenom'], {'attr': {'class': 'form-control'}}) }}
+    <div class="text-danger small">{{ form_errors(registrationForm['prenom']) }}</div>
+  </div>
+
+  <div class="mb-3">
+    {{ form_label(registrationForm['email'], 'Email') }}
+    {{ form_widget(registrationForm['email'], {'attr': {'class': 'form-control'}}) }}
+    <div class="text-danger small">{{ form_errors(registrationForm['email']) }}</div>
+  </div>
+
+  <div class="mb-3">
+    {{ form_label(registrationForm['plainPassword'], 'Mot de passe') }}
+    {{ form_widget(registrationForm['plainPassword'], {'attr': {'class': 'form-control'}}) }}
+    <div class="text-danger small">{{ form_errors(registrationForm['plainPassword']) }}</div>
+  </div>
+
+  <div class="mb-3 form-check">
+    {{ form_widget(registrationForm['agreeTerms'], {'attr': {'class': 'form-check-input'}}) }}
+    {{ form_label(registrationForm['agreeTerms'], 'J\'accepte les conditions', {'label_attr': {'class': 'form-check-label'}}) }}
+    <div class="text-danger small">{{ form_errors(registrationForm['agreeTerms']) }}</div>
+  </div>
+
+  <div class="d-grid">
+    <button type="submit" class="btn btn-outline-dark">S'inscrire</button>
+  </div>
+
+  {{ form_end(registrationForm) }}
+</div>

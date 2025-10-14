@@ -3,6 +3,209 @@
     --primary:#0d6efd;
     --bg-hero:#0b3d91;
     --muted:#6c757d;
+    --bg:#f8f9fa;
+    --surface:#ffffff;
+    --muted-2:#adb5bd;
+    --header-bg: #0b3d91; /* default header color */
+    --radius-lg:12px;
+}
+
+body{
+    background: var(--bg);
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    color: #212529;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+}
+
+/* Hero */
+.hero{
+    background: linear-gradient(135deg, rgba(11,61,145,0.95) 0%, rgba(13,102,253,0.9) 100%);
+    color: #fff;
+    border-radius: 8px;
+}
+.hero .lead{ opacity:.95; }
+
+/* Cards */
+.card{ border-radius: var(--radius-lg); box-shadow: 0 6px 18px rgba(33,37,41,0.06); }
+.card-custom{ border-radius: calc(var(--radius-lg) - 2px); }
+
+/* Forms */
+.form-control{ border:1px solid #e7e9ee; transition: box-shadow .12s ease, border-color .12s ease; border-radius:8px; }
+.form-control:focus{ border-color: var(--primary); box-shadow: 0 8px 20px rgba(13,102,253,0.08); }
+
+/* Buttons */
+.btn{ transition: transform .12s ease, box-shadow .12s ease; }
+.btn:active{ transform: translateY(1px); }
+.btn-primary, .btn-dark{ border-radius: 8px; }
+.btn-dark{ background: var(--bg-hero); color: #fff; border: none; }
+.btn-outline-primary{ border-color: var(--primary); color: var(--primary); }
+.btn-outline-primary:hover{ background: var(--primary); color:#fff; }
+
+/* Header / Navbar improvements */
+.navbar{ background: var(--header-bg); backdrop-filter: blur(0); box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+.navbar .container{ display:flex; align-items:center; }
+.navbar-brand{ margin-right: auto; }
+.header-actions{ margin-left: auto; display:flex; align-items:center; gap:.6rem; }
+.navbar-brand{ margin-right: 1rem; }
+.navbar-brand img{ border-radius: 8px; transition: transform .18s ease; display:block; }
+.navbar-brand img:hover{ transform: scale(.99); }
+
+/* Force logo to the very left and make it responsive */
+.navbar{ padding-left: .75rem; padding-right: .75rem; }
+.navbar-brand{ margin-right: auto; }
+.navbar-brand img{ width: 110px; height: auto; max-height:80px; }
+
+@media (max-width: 1024px){
+    .navbar-brand img{ width: 96px; max-height:72px; }
+}
+@media (max-width: 768px){
+    .navbar-brand img{ width: 80px; max-height:60px; }
+}
+@media (max-width: 480px){
+    .navbar-brand img{ width: 64px; max-height:48px; }
+}
+.header-actions{ display:flex; align-items:center; gap:.6rem; }
+
+/* Ensure our modals sit above any fixed headers/toolbar (like profiler) */
+:root{
+    --app-modal-zindex: 200000;
+    --app-backdrop-zindex: 199999;
+}
+
+/* Force modal z-indexes to a very high level so they never get hidden */
+.modal{ z-index: var(--app-modal-zindex) !important; }
+.modal-backdrop{ z-index: var(--app-backdrop-zindex) !important; }
+.modal.show .modal-dialog{ z-index: calc(var(--app-modal-zindex) + 1) !important; }
+
+/* Slight visual tweaks for modal content */
+.modal .modal-content{ border-radius: 12px; overflow: hidden; }
+.modal .modal-body{ padding-top: .5rem; padding-bottom: 1.25rem; }
+.modal .nav-pills .nav-link{ padding: .45rem .95rem; border-radius: 999px; }
+
+/* registration fragment inside modal */
+.modal-register .register-form{ padding: .8rem; }
+.modal-register .form-control{ border-radius: 8px; }
+.modal-register .form-check-label{ font-weight:500; }
+
+/* Keep backdrop slightly dark but not harsh */
+.modal-backdrop.show{ background-color: rgba(0,0,0,0.45); }
+
+.header-actions .btn{ padding:.45rem .9rem; border-radius:10px; }
+.header-actions .btn.text-bg-dark{ background: rgba(255,255,255,0.08); color: #fff; }
+.header-actions .btn.text-bg-dark:hover{ transform: translateY(-2px); box-shadow: 0 8px 30px rgba(17,24,39,0.12); }
+.navbar .nav-link{ color: rgba(255,255,255,0.9); padding:.6rem .8rem; border-radius:8px; }
+.navbar .nav-link:hover{ background: rgba(255,255,255,0.06); color: #fff; }
+.navbar .nav-link.active{ color: #fff; font-weight:600; }
+
+/* Ensure buttons contrast on header */
+.header-actions .btn{ color: #fff; }
+.btn-new{ background: rgba(255,255,255,0.08); color: #fff; }
+
+/* Modal register/login styles */
+.modal#modal-login .modal-dialog{ max-width: 540px; }
+.modal#modal-login .modal-content{ border-radius: 12px; padding: 1rem; background: var(--surface); }
+.modal#modal-login .modal-header{ border-bottom: 0; padding-bottom: .5rem; }
+.modal#modal-login .modal-title{ font-weight: 700; color: var(--bg-hero); }
+.modal#modal-login .nav-pills .nav-link{ border-radius: 999px; padding: .4rem 1rem; }
+.modal#modal-login .nav-pills .nav-link.active{ background: #fff; color: #000; box-shadow: 0 4px 14px rgba(13,102,253,0.12); }
+.modal#modal-login .form-control{ border-radius: 8px; padding: .6rem .75rem; }
+.modal#modal-login .btn-dark{ background: var(--bg-hero); border: none; }
+.modal#modal-login .btn-outline-dark{ border-radius: 8px; }
+.modal#modal-login .form-text{ font-size: .85rem; color: var(--muted); }
+
+/* Global modal behaviors */
+.modal .modal-content{ transition: transform .18s cubic-bezier(.2,.8,.2,1), opacity .18s ease; }
+.modal.fade .modal-dialog{ transform: translateY(-8px); }
+.modal.show .modal-dialog{ transform: translateY(0); }
+.modal-backdrop.show{ opacity: .45; backdrop-filter: blur(4px) saturate(1.02); }
+
+/* Responsive tweaks */
+@media (max-width: 576px){
+    .modal#modal-login .modal-dialog{ max-width: 95%; margin: 0 1rem; }
+}
+
+/* Responsive header: collapse actions into toggler on small screens */
+.navbar-toggler{ border: none; width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; background: rgba(11,61,145,0.06); border-radius: 8px; }
+.navbar-toggler-icon{ display:inline-block; width:18px; height:2px; background: currentColor; box-shadow: 0 6px 0 currentColor, 0 -6px 0 currentColor; }
+@media (max-width: 767.98px){
+    .header-actions{ flex-direction: column; align-items: stretch; }
+    .header-actions .d-flex{ flex-direction: row; justify-content: space-between; gap: .5rem; }
+    .header-actions .btn .d-none.d-md-inline{ display:none !important; }
+    .navbar .nav-link{ padding:.5rem .6rem; }
+    .navbar-brand img{ width:72px; height:56px; }
+}
+
+/* Utilities */
+.gap-2rem{ gap:2rem; }
+.small.text-light-600{ opacity: .85; }
+.alert{ border-radius: 6px; }
+
+/* hero actions */
+.hero-actions { gap: .75rem; }
+.form-control-search{ min-width: 220px; max-width: 420px; border-radius: 28px; padding: .5rem 1rem; }
+.btn-search{ border-radius: 28px; padding: .45rem 1rem; }
+.btn-new{ border-radius: 28px; padding: .5rem 1rem; box-shadow: 0 6px 18px rgba(11,61,145,0.08); }
+
+/* Modern register styles (page + modal) */
+.register-card{
+    max-width: 720px;
+    margin: 2rem auto;
+    background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(250,250,255,0.98));
+    border-radius: 14px;
+    box-shadow: 0 12px 40px rgba(11,61,145,0.08);
+    padding: 2rem;
+}
+.register-card .card-header{
+    border-bottom: none; margin-bottom: 1rem;
+}
+.register-title{
+    font-size: 1.5rem; color: var(--bg-hero); margin-bottom: .5rem; font-weight:700;
+}
+.register-sub{
+    color: var(--muted-2); margin-bottom: 1.25rem;
+}
+.register-form .form-control{ padding: .75rem 1rem; border-radius: 10px; }
+.register-form .form-label{ font-weight:600; color:#212529; }
+.register-form .btn-submit{
+    background: linear-gradient(90deg, var(--bg-hero), #0d6efd);
+    border: none; color:#fff; padding:.75rem 1rem; border-radius:10px; width:100%; box-shadow: 0 10px 30px rgba(11,61,145,0.12);
+}
+.register-form .form-errors{ color:#b00020; font-size:.95rem; margin-bottom:.75rem; }
+
+/* Modal register-specific tweaks */
+.modal-register .register-card{ box-shadow: none; padding: .5rem 0 0 0; background: transparent; }
+
+/* Styles specifically targeting the modal fragment (.modal-register > .register-form) */
+.modal-register{ padding: .5rem 0; }
+.modal-register .register-form{
+    background: var(--surface);
+    padding: 1rem;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(11,61,145,0.06);
+}
+.modal-register .form-control{ border-radius: 8px; }
+.modal-register .form-label{ color: #212529; font-weight:600; }
+.modal-register .btn-submit{
+    display: block;
+    width: 100%;
+    padding: .7rem 1rem;
+    border-radius: 10px;
+    border: none;
+    color: #fff;
+    background: linear-gradient(90deg, var(--bg-hero), var(--primary));
+    box-shadow: 0 10px 30px rgba(11,61,145,0.12);
+}
+.modal-register .btn-submit:active{ transform: translateY(1px); }
+
+@media (max-width: 576px){
+    .register-card{ margin: 1rem; padding: 1rem; }
+}
+/* site.css - styles for GameSet tournament pages */
+:root{
+    --primary:#0d6efd;
+    --bg-hero:#0b3d91;
+    --muted:#6c757d;
 }
 
 body{
@@ -70,3 +273,182 @@ body{
     border-radius: 28px;
     padding: .5rem 1rem;
 }
+
+/* Modal register/login styles */
+.modal#modal-login .modal-dialog{
+    max-width: 540px;
+}
+.modal#modal-login .modal-content{
+    border-radius: 12px;
+    padding: 1rem;
+    background: #fff;
+}
+.modal#modal-login .modal-header{
+    border-bottom: 0;
+    padding-bottom: .5rem;
+}
+.modal#modal-login .modal-title{
+    font-weight: 700;
+    color: var(--bg-hero);
+}
+.modal#modal-login .nav-pills .nav-link{
+    border-radius: 999px;
+    padding: .4rem 1rem;
+}
+.modal#modal-login .nav-pills .nav-link.active{
+    background: #fff;
+    color: #000;
+    box-shadow: 0 4px 14px rgba(13,102,253,0.12);
+}
+.modal#modal-login .form-control{
+    border-radius: 8px;
+    padding: .6rem .75rem;
+}
+.modal#modal-login .btn-dark{
+    background: var(--bg-hero);
+    border: none;
+}
+.modal#modal-login .btn-outline-dark{
+    border-radius: 8px;
+}
+.modal#modal-login .form-text{
+    font-size: .85rem;
+    color: var(--muted);
+}
+
+@media (max-width: 576px){
+    .modal#modal-login .modal-dialog{
+        max-width: 95%;
+        margin: 0 1rem;
+    }
+}
+
+/* -------------------------
+   Global enhancements
+   ------------------------- */
+:root{
+    --bg:#f8f9fa;
+    --surface:#ffffff;
+    --muted-2:#adb5bd;
+    --radius-lg:12px;
+}
+
+/* Typography */
+body{
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    color: #212529;
+    background: var(--bg);
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+}
+
+h1,h2,h3,h4{ color: #0b3d91; }
+
+/* Container tweaks */
+.container{ max-width: 1100px; }
+
+/* Cards */
+.card{ border-radius: var(--radius-lg); box-shadow: 0 6px 18px rgba(33,37,41,0.06); }
+.card-custom{ border-radius: calc(var(--radius-lg) - 2px); }
+
+/* Buttons */
+.btn{ transition: transform .12s ease, box-shadow .12s ease; }
+.btn:active{ transform: translateY(1px); }
+.btn-primary, .btn-dark{ border-radius: 8px; }
+.btn-dark{ background: var(--bg-hero); color: #fff; }
+
+/* Forms */
+.form-control{ border: 1px solid #e7e9ee; transition: box-shadow .12s ease, border-color .12s ease; }
+.form-control:focus{ border-color: var(--primary); box-shadow: 0 8px 20px rgba(13,102,253,0.08); }
+
+/* Modal enhancements: smoother, subtle backdrop blur */
+.modal .modal-content{ transition: transform .18s cubic-bezier(.2,.8,.2,1), opacity .18s ease; }
+.modal.fade .modal-dialog{ transform: translateY(-8px); }
+.modal.show .modal-dialog{ transform: translateY(0); }
+
+/* Backdrop blur for modern look (optional on supported browsers) */
+.modal-backdrop.show{
+    opacity: .45;
+    backdrop-filter: blur(4px) saturate(1.02);
+}
+
+/* Responsive header: collapse actions into toggler on small screens */
+.navbar-toggler{
+    border: none;
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(11,61,145,0.06);
+    border-radius: 8px;
+}
+.navbar-toggler-icon{
+    display:inline-block;
+    width:18px;
+    height:2px;
+    background: currentColor;
+    box-shadow: 0 6px 0 currentColor, 0 -6px 0 currentColor;
+}
+
+@media (max-width: 767.98px){
+    .header-actions{ flex-direction: column; align-items: stretch; }
+    .header-actions .d-flex{ flex-direction: row; justify-content: space-between; gap: .5rem; }
+    .header-actions .btn .d-none.d-md-inline{ display:none !important; }
+    .navbar .nav-link{ padding:.5rem .6rem; }
+    .navbar-brand img{ width:72px; height:56px; }
+}
+
+/* Responsive form layout within modals */
+.modal .form-row{ display:flex; gap:.75rem; }
+.modal .form-row .form-control{ flex:1; }
+
+/* Utility spacing */
+.gap-2rem{ gap:2rem; }
+
+/* Buttons in hero */
+.hero .btn-new{ box-shadow: 0 6px 18px rgba(11,61,145,0.08); }
+
+/* Small tweak for pills visuals across modals */
+.nav-pills .nav-link{ transition: all .14s ease; }
+
+/* Header / Navbar improvements */
+.navbar{
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(6px);
+    box-shadow: 0 2px 12px rgba(16,24,40,0.04);
+}
+.navbar .container{ display:flex; align-items:center; justify-content:space-between; }
+.navbar-brand img{ border-radius: 8px; transition: transform .18s ease; }
+.navbar-brand img:hover{ transform: scale(.99); }
+
+.header-actions{ display:flex; align-items:center; gap:.6rem; }
+.header-actions .btn{ padding:.45rem .9rem; border-radius:10px; }
+.header-actions .btn.text-bg-dark{ background:#111827; color:#fff; }
+.header-actions .btn.text-bg-dark:hover{ transform: translateY(-2px); box-shadow: 0 8px 30px rgba(17,24,39,0.12); }
+
+.navbar .nav-link{ color: rgba(33,37,41,.8); padding:.6rem .8rem; border-radius:8px; }
+.navbar .nav-link:hover{ background: rgba(13,102,253,0.06); color: #0b3d91; }
+.navbar .nav-link.active{ color: var(--bg-hero); font-weight:600; }
+
+/* Make header sticky on scroll */
+header.sticky-navbar, .navbar.sticky-navbar{ position: sticky; top:0; z-index: 1030; }
+
+/* Force modals and their backdrops above other UI chrome (profiler, toasts, fixed footers) */
+:root{
+    --app-modal-zindex: 200000;
+    --app-backdrop-zindex: 199999;
+}
+.modal{
+    z-index: var(--app-modal-zindex) !important;
+}
+.modal-backdrop{
+    z-index: var(--app-backdrop-zindex) !important;
+}
+
+/* Ensure modal dialog sits above backdrop as expected */
+.modal.show .modal-dialog{
+    z-index: calc(var(--app-modal-zindex) + 1) !important;
+}
+
+

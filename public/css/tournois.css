@@ -1,0 +1,68 @@
+/* Minimal styles for the Tournois page (matches provided mockup) */
+
+:root{
+  --gs-primary:#0b0b12; /* dark button background */
+  --gs-muted:#6c6f76;
+  --gs-bg:#f8fafb;
+}
+
+.hero{
+  background: transparent;
+  color: var(--gs-primary);
+}
+
+.hero .display-5{
+  font-weight:700;
+}
+
+.hero-actions .btn-new{
+  background: var(--gs-primary);
+  color: #fff;
+  border-radius: 8px;
+  padding: 8px 14px;
+  box-shadow: 0 6px 12px rgba(11,11,18,0.06);
+}
+
+.form-control-search{
+  min-width: 320px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid #eee;
+  padding: 10px 14px;
+}
+
+.btn-search{
+  border-radius: 12px;
+}
+
+.example-wrapper .card-custom{
+  border-radius: 12px;
+}
+
+.empty-state{
+  padding: 80px 0;
+  text-align: center;
+  color: var(--gs-muted);
+}
+
+.empty-state .icon{
+  font-size: 48px;
+  color: #9aa0a6;
+  margin-bottom: 18px;
+}
+
+.empty-state .cta{
+  margin-top: 18px;
+}
+
+.empty-state .btn-new{
+  background: var(--gs-primary);
+  color: white;
+  border-radius: 8px;
+  padding: 8px 16px;
+}
+
+@media (max-width: 768px){
+  .hero .container{padding:0 16px}
+  .form-control-search{min-width: 140px}
+}
