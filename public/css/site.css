@@ -409,4 +409,21 @@ h1,h2,h3,h4{ color: #0b3d91; }
 /* Make header sticky on scroll */
 header.sticky-navbar, .navbar.sticky-navbar{ position: sticky; top:0; z-index: 1030; }
 
+/* Force modals and their backdrops above other UI chrome (profiler, toasts, fixed footers) */
+:root{
+    --app-modal-zindex: 200000;
+    --app-backdrop-zindex: 199999;
+}
+.modal{
+    z-index: var(--app-modal-zindex) !important;
+}
+.modal-backdrop{
+    z-index: var(--app-backdrop-zindex) !important;
+}
+
+/* Ensure modal dialog sits above backdrop as expected */
+.modal.show .modal-dialog{
+    z-index: calc(var(--app-modal-zindex) + 1) !important;
+}
+
 
