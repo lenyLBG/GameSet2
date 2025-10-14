@@ -48,10 +48,14 @@ body{
 .navbar-brand{ margin-right: auto; }
 .header-actions{ margin-left: auto; display:flex; align-items:center; gap:.6rem; }
 .navbar-brand{ margin-right: 1rem; }
+.navbar .container-fluid{ display:flex; align-items:center; justify-content:space-between; gap:1rem; }
+.navbar-brand{ margin-right: 0.5rem; }
+.header-actions{ margin-left: 0; display:flex; align-items:center; gap:.6rem; }
 .navbar-brand img{ border-radius: 8px; transition: transform .18s ease; display:block; }
 .navbar-brand img:hover{ transform: scale(.99); }
 
 /* Force logo to the very left and make it responsive */
+.navbar{ padding-left: .75rem; padding-right: .75rem; }
 .navbar{ padding-left: .75rem; padding-right: .75rem; }
 .navbar-brand{ margin-right: auto; }
 .navbar-brand img{ width: 110px; height: auto; max-height:80px; }
