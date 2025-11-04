@@ -26,6 +26,37 @@ body{
 }
 .hero .lead{ opacity:.95; }
 
+/* Home specific hero layout */
+.site-home .hero.container{
+    padding: 2.25rem;
+    border-radius: 14px;
+}
+.site-home .hero-inner{ display:flex; gap:2rem; align-items:center; }
+.site-home .hero-copy h1{ font-size:2.4rem; line-height:1.05; }
+.site-home .hero-copy .lead{ color: rgba(255,255,255,0.9); }
+.site-home .card-visual img{ display:block; }
+.site-home .card-visual{ border-radius:14px; overflow:hidden; }
+
+/* Presenter badge above hero */
+.presenter .badge-presenter{ background: linear-gradient(90deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03)); border-radius:999px; padding-left:.8rem; padding-right:.8rem; align-items:center; gap:.5rem; }
+.presenter .badge-presenter small{ color:#fff; font-weight:600; opacity:0.95; }
+
+/* Feature grid */
+.features .card{ border-radius:12px; border:1px solid rgba(33,37,41,0.04); }
+.features .feature-icon svg{ opacity:0.95; }
+.features .card p{ color: #6c757d; }
+
+.features .feature-icon{ width:48px; height:48px; }
+.features .feature-icon > div{ width:100%; height:100%; border-radius:10px; }
+.features .card h3{ font-size:1rem; margin-bottom:.25rem; }
+.features .card p.small{ font-size:.9rem; }
+
+@media (max-width: 992px){
+    .site-home .hero-inner{ flex-direction:column-reverse; }
+    .site-home .hero-visual{ width:100%; }
+    .site-home .hero-copy{ max-width:100%; }
+}
+
 /* Cards */
 .card{ border-radius: var(--radius-lg); box-shadow: 0 6px 18px rgba(33,37,41,0.06); }
 .card-custom{ border-radius: calc(var(--radius-lg) - 2px); }
