@@ -9,6 +9,9 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use App\Entity\Tournoi;
 use Doctrine\Persistence\ManagerRegistry;
+use App\Entity\ParticipationRequest;
+use App\Entity\Equipe;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 
 final class TournoisController extends AbstractController
 {
@@ -45,8 +48,12 @@ final class TournoisController extends AbstractController
             throw $this->createNotFoundException('Tournoi non trouvé.');
         }
 
+        // only load pending requests
+        $requests = $doctrine->getRepository(ParticipationRequest::class)->findBy(['tournoi' => $tournoi, 'status' => 'pending'], ['createdAt' => 'DESC']);
+
         return $this->render('tournois/show.html.twig', [
             'tournoi' => $tournoi,
+            'participation_requests' => $requests,
         ]);
     }
 
@@ -322,6 +329,134 @@ final class TournoisController extends AbstractController
         } else {
             $this->addFlash('info', 'L\'équipe n\'est pas inscrite à ce tournoi.');
         }
+
+        return $this->redirectToRoute('app_tournoi_show', ['id' => $id]);
+    }
+
+    #[Route('/participation-request/{id}/decide', name: 'app_participation_request_decide', methods: ['POST'])]
+    public function decideParticipation(int $id, Request $request, ManagerRegistry $doctrine): Response
+    {
+        $pr = $doctrine->getRepository(ParticipationRequest::class)->find($id);
+        if (!$pr) {
+            $this->addFlash('error', 'Demande introuvable.');
+            return $this->redirectToRoute('app_tournois');
+        }
+
+        $tournoi = $pr->getTournoi();
+        if (!$this->getUser() || $tournoi->getCreator() === null || ($this->getUser() !== $tournoi->getCreator() && !$this->isGranted('ROLE_ADMIN'))) {
+            $this->addFlash('error', 'Action non autorisée.');
+            return $this->redirectToRoute('app_tournoi_show', ['id' => $tournoi->getId()]);
+        }
+
+        $submittedToken = $request->request->get('_token');
+        if (!$this->isCsrfTokenValid('decide_part_'.$pr->getId(), $submittedToken)) {
+            $this->addFlash('error', 'Jeton CSRF invalide.');
+            return $this->redirectToRoute('app_tournoi_show', ['id' => $tournoi->getId()]);
+        }
+
+        $action = $request->request->get('action');
+        $em = $doctrine->getManager();
+        if ($action === 'accept') {
+            $pr->setStatus('accepted');
+
+            // Add requester as participant: try to use an existing Equipe linked to the user,
+            // otherwise create a new Equipe for the user and associate it.
+            $requester = $pr->getUser();
+            $equipe = null;
+            if ($requester) {
+                $userEquipes = $requester->getEquipe();
+                if ($userEquipes && count($userEquipes) > 0) {
+                    // pick first equipe
+                    $equipe = $userEquipes->first();
+                }
+            }
+
+            if (!$equipe) {
+                $equipe = new Equipe();
+                $name = '';
+                if ($requester) {
+                    $name = trim(($requester->getNom() ?? '') . ' ' . ($requester->getPrenom() ?? '')) ?: 'Equipe ' . $requester->getId();
+                } else {
+                    $name = 'Equipe ' . uniqid();
+                }
+                $equipe->setNom($name);
+                if ($requester && method_exists($equipe, 'setCoach')) {
+                    // leave coach null; set contact if desired
+                }
+                // link user to equipe if mapping exists
+                if ($requester && method_exists($requester, 'addEquipe')) {
+                    $requester->addEquipe($equipe);
+                }
+                $em->persist($equipe);
+            }
+
+            // associate equipe with tournoi if not already
+            if ($equipe && !$equipe->getTournois()->contains($tournoi)) {
+                $equipe->addTournoi($tournoi);
+                $tournoi->addEquipe($equipe);
+                $em->persist($tournoi);
+                $em->persist($equipe);
+            }
+
+            $this->addFlash('success', 'Demande acceptée. Le participant a été ajouté au tournoi.');
+        } else {
+            $pr->setStatus('rejected');
+            $this->addFlash('success', 'Demande refusée.');
+        }
+
+        // Remove the request after decision so it no longer appears in pending list
+        $em->remove($pr);
+        $em->flush();
+
+        return $this->redirectToRoute('app_tournoi_show', ['id' => $tournoi->getId()]);
+    }
+
+    #[Route('/tournoi/{id}/request-participation', name: 'app_tournoi_request_participation', methods: ['POST'])]
+    public function requestParticipation(int $id, Request $request, ManagerRegistry $doctrine): Response
+    {
+        if (!$this->getUser()) {
+            $this->addFlash('error', 'Vous devez être connecté pour faire une demande de participation.');
+            return $this->redirectToRoute('app_tournoi_show', ['id' => $id]);
+        }
+
+        $submittedToken = $request->request->get('_token');
+        if (!$this->isCsrfTokenValid('request_participation_'.$id, $submittedToken)) {
+            $this->addFlash('error', 'Jeton CSRF invalide.');
+            return $this->redirectToRoute('app_tournoi_show', ['id' => $id]);
+        }
+
+        $tournoi = $doctrine->getRepository(\App\Entity\Tournoi::class)->find($id);
+        if (!$tournoi) {
+            $this->addFlash('error', 'Tournoi introuvable.');
+            return $this->redirectToRoute('app_tournois');
+        }
+
+        // Creators and admins do not need to request
+        if ($this->getUser() === $tournoi->getCreator() || $this->isGranted('ROLE_ADMIN')) {
+            $this->addFlash('info', 'Vous êtes déjà autorisé pour ce tournoi.');
+            return $this->redirectToRoute('app_tournoi_show', ['id' => $id]);
+        }
+
+
+        // Persist participation request in DB
+        $em = $doctrine->getManager();
+        $existing = $doctrine->getRepository(ParticipationRequest::class)->findOneBy(['tournoi' => $tournoi, 'user' => $this->getUser()]);
+        if ($existing) {
+            $this->addFlash('info', 'Vous avez déjà fait une demande pour ce tournoi.');
+            return $this->redirectToRoute('app_tournoi_show', ['id' => $id]);
+        }
+
+        $pr = new ParticipationRequest();
+        $pr->setTournoi($tournoi);
+        $pr->setUser($this->getUser());
+        $message = trim((string) $request->request->get('message', ''));
+        if ($message !== '') {
+            $pr->setMessage($message);
+        }
+        $em->persist($pr);
+        $em->flush();
+
+        $this->addFlash('success', 'Votre demande de participation a été envoyée au créateur.');
 
         return $this->redirectToRoute('app_tournoi_show', ['id' => $id]);
     }

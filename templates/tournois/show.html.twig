@@ -31,6 +31,62 @@
             </div>
         </div>
     </div>
+    <div class="row justify-content-center mt-3">
+        <div class="col-md-8 d-flex justify-content-end">
+            {% if app.user %}
+                {% if app.user == tournoi.creator or is_granted('ROLE_ADMIN') %}
+                    <button class="btn btn-outline-secondary" disabled>Vous êtes autorisé</button>
+                {% else %}
+                    <form method="post" action="{{ path('app_tournoi_request_participation', {'id': tournoi.id}) }}" class="m-0 d-flex gap-2">
+                        <input type="hidden" name="_token" value="{{ csrf_token('request_participation_' ~ tournoi.id) }}">
+                        <input type="text" name="message" class="form-control form-control-sm" placeholder="Message facultatif" style="max-width:360px">
+                        <button class="btn btn-warning">Faire une demande de participation</button>
+                    </form>
+                {% endif %}
+            {% else %}
+                <a href="#" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#loginModal">Faire une demande de participation</a>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if participation_requests is defined and participation_requests is not empty and app.user and (app.user == tournoi.creator or is_granted('ROLE_ADMIN')) %}
+    <div class="row justify-content-center mt-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <h5>Demandes de participation</h5>
+                    <ul class="list-group">
+                        {% for req in participation_requests %}
+                            <li class="list-group-item d-flex justify-content-between align-items-start">
+                                <div>
+                                    <strong>{{ req.user.nom }} {{ req.user.prenom }}</strong>
+                                    <div class="text-muted small">Envoyé le {{ req.createdAt|date('d/m/Y H:i') }}</div>
+                                    {% if req.message %}
+                                        <div class="mt-2">{{ req.message }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <form method="post" action="{{ path('app_participation_request_decide', {'id': req.id}) }}">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('decide_part_' ~ req.id) }}">
+                                        <input type="hidden" name="action" value="accept">
+                                        <button class="btn btn-sm btn-success">Accepter</button>
+                                    </form>
+                                    <form method="post" action="{{ path('app_participation_request_decide', {'id': req.id}) }}">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('decide_part_' ~ req.id) }}">
+                                        <input type="hidden" name="action" value="reject">
+                                        <button class="btn btn-sm btn-outline-danger">Refuser</button>
+                                    </form>
+                                </div>
+                            </li>
+                        {% else %}
+                            <li class="list-group-item">Aucune demande en attente.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
     <div class="row justify-content-center mt-4">
         <div class="col-md-8">
             <div class="card shadow-sm">
