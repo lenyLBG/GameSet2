@@ -12,11 +12,20 @@
 
 body{
     background: var(--bg);
-    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    font-family: "Brown Sugar", sans-serif;
+
     color: #212529;
     -webkit-font-smoothing:antialiased;
     -moz-osx-font-smoothing:grayscale;
+    
 }
+@font-face {
+    font-family: "Brown Sugar";
+    src: url("fonts/BrownSugar.ttf") format("truetype");
+    font-weight: normal;
+    font-style: normal;
+}
+
 
 /* Hero */
 .hero{
