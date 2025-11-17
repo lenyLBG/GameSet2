@@ -1,24 +1,27 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}GameSet - Tournois{% endblock %}
+{% block title %}Mes Tournois{% endblock %}
+
+{% block stylesheets %}
+        <link rel="stylesheet" href="{{ asset('css/tournois.css') }}">
+{% endblock %}
 
 {% block body %}
 
-<section class="hero py-4 mb-4 text-center text-white">
+<section class="hero py-4 mb-4">
     <div class="container d-flex flex-column flex-md-row align-items-center justify-content-between gap-3">
-        <div>
-            <h1 class="display-5 mb-1">Tournois</h1>
-            <p class="lead mb-0">Découvrez et gérez vos tournois</p>
-            <p class="small text-light-600 mb-0">Nombre de tournois : {{ tournois|default([])|length }}</p>
+        <div class="hero-left">
+            <h1 class="display-5 mb-1">Mes Tournois</h1>
+            <p class="lead mb-1 text-muted">Gérez tous vos tournois ({{ tournois|default([])|length }} au total)</p>
         </div>
-        <div class="hero-actions d-flex align-items-center gap-2">
-            <form class="d-flex" method="get" action="{{ path('app_tournois') }}">
-                <input class="form-control form-control-search me-2" name="q" type="search" placeholder="Rechercher nom, sport ou format" aria-label="Search" value="{{ q|default('') }}"/>
-                <button class="btn btn-outline-light btn-search" type="submit">Search</button>
+
+        <div class="d-flex align-items-center gap-3 hero-right">
+            <form class="d-none d-md-flex align-items-center" method="get" action="{{ path('app_tournois') }}">
+                <input class="form-control form-control-search me-2" name="q" type="search" placeholder="Rechercher un tournoi..." aria-label="Search" value="{{ q|default('') }}"/>
             </form>
 
-                        <button type="button" class="btn btn-light btn-new" data-bs-toggle="modal" data-bs-target="#tournois">
-              Nouveau Tournoi
+            <button type="button" class="btn btn-new" data-bs-toggle="modal" data-bs-target="#tournois">
+                <span class="me-2">+</span> Nouveau tournoi
             </button>
         </div>
     </div>
@@ -31,22 +34,38 @@
     {% endfor %}
 {% endfor %}
 
-<!-- Modal -->
+{# Modal for creating a new tournoi #}
 {% include 'partials/modal_new_tournoi.html.twig' %}
 
-{# duplicate search removed — hero contains the primary search form #}
-
-<div class="example-wrapper">
-    <div class="container mt-4">
-        <div class="row">
-            {% for tournoi in tournois|default([]) %}
+<div class="container">
+    <div class="row">
+        {% if tournois is empty %}
+            <div class="col-12">
+                <div class="empty-state">
+                    <div class="icon" aria-hidden="true">
+                        <!-- simple trophy SVG -->
+                        <svg width="72" height="72" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M7 3v2a5 5 0 0 0 5 5h0a5 5 0 0 0 5-5V3" stroke="#9aa0a6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M3 7h18v2a7 7 0 0 1-7 7h0a7 7 0 0 1-7-7V7z" stroke="#9aa0a6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M8 21h8" stroke="#9aa0a6" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <h3 class="mt-3">Aucun tournoi créé</h3>
+                    <p class="text-muted">Créez votre premier tournoi pour commencer</p>
+                    <div class="cta">
+                        <button class="btn btn-new" data-bs-toggle="modal" data-bs-target="#tournois">
+                            <span class="me-2">+</span> Nouveau tournoi
+                        </button>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            {% for tournoi in tournois %}
                 <div class="col-md-4 mb-4">
                     <div class="card card-custom h-100 shadow-sm border-0">
                         <div class="card-body">
                             <h5 class="card-title">{{ tournoi.nom }}</h5>
                             <p class="card-text text-muted mb-1"><strong>Sport:</strong> {{ tournoi.sport }}</p>
-                            <p class="card-text text-muted mb-1"><strong>Format:</strong> {{ tournoi.format ?: 'N/A' }}</p>
-                            <p class="card-text text-muted mb-1 small"><strong>Du</strong> {{ tournoi.dateDebut ? tournoi.dateDebut|date('d/m/Y') : 'N/A' }} <strong>au</strong> {{ tournoi.dateFin ? tournoi.dateFin|date('d/m/Y') : 'N/A' }}</p>
                         </div>
                         <div class="card-footer bg-transparent border-0 d-flex justify-content-between align-items-center">
                             <a href="{{ path('app_tournoi_show', {id: tournoi.id}) }}" class="btn btn-outline-primary">Voir Détails</a>
@@ -54,10 +73,8 @@
                         </div>
                     </div>
                 </div>
-                {% else %}
-                    <p style="text-align: center">Aucun tournoi disponible.</p>
             {% endfor %}
-        </div>
+        {% endif %}
     </div>
 </div>
 
@@ -66,13 +83,12 @@
 {% block javascripts %}
     {{ parent() }}
     <script>
-        // If URL ends with #create (header link points to /tournoi#create), open the modal
+        // If URL has #create, open the create modal
         if (window.location.hash === '#create') {
-            var modalEl = document.getElementById('tournois'); // Corrected ID to match the button's data-bs-target
+            var modalEl = document.getElementById('tournois');
             if (modalEl) {
                 var modal = new bootstrap.Modal(modalEl);
                 modal.show();
-                // remove the hash to prevent reopening on refresh
                 history.replaceState(null, null, window.location.pathname + window.location.search);
             }
         }
