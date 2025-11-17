@@ -1,0 +1,153 @@
+/* Statistiques page styles — use centralized design variables from site.css */
+
+:root {
+    /* No redefinition of color variables — rely on site.css variables (aliases present)
+       This file uses the --gs-* variables defined in `site.css` for consistency. */
+}
+
+.stats-container {
+    margin: 2rem auto;
+    max-width: 1200px;
+    width: 95%;
+}
+
+.stats-container h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--gs-text);
+    margin-bottom: 0.5rem;
+}
+
+.stats-container > p {
+    font-size: 1rem;
+    color: var(--gs-text-light);
+    margin-bottom: 2rem;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: var(--gs-surface);
+    border: 1px solid var(--gs-border);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    transition: all 0.3s ease;
+    height: 100%;
+    overflow: hidden;
+}
+
+.stat-card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+    border-color: #ddd;
+}
+
+.stat-card .card-body {
+    padding: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.stat-card .card-title {
+    font-size: 0.875rem;
+    color: var(--gs-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.stat-card h3 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--gs-primary);
+    line-height: 1;
+}
+
+.stat-card .stat-value-wrapper {
+    flex-grow: 1;
+}
+
+.stat-icon-wrapper {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(135deg, rgba(11, 11, 18, 0.04) 0%, rgba(11, 11, 18, 0.02) 100%);
+    border-radius: 10px;
+}
+
+.stat-icon-wrapper svg {
+    width: 36px;
+    height: 36px;
+    opacity: 0.5;
+    color: var(--gs-primary);
+}
+
+.chart-card {
+    background: var(--gs-surface);
+    border: 1px solid var(--gs-border);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    margin-top: 2rem;
+    overflow: hidden;
+}
+
+.chart-card .card-body {
+    padding: 1.5rem;
+}
+
+.chart-card .card-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--gs-text);
+    margin-bottom: 1.5rem;
+    display: block;
+}
+
+#tournoiChart { max-height: 300px; }
+
+.empty-state {
+    text-align: center;
+    padding: 3rem 1.5rem;
+    background: var(--gs-surface);
+    border: 1px solid var(--gs-border);
+    border-radius: 12px;
+    margin-top: 2rem;
+}
+
+.empty-state svg { width: 80px; height: 80px; opacity: 0.25; margin-bottom: 1rem; }
+.empty-state h5 { font-size: 1.25rem; color: var(--gs-text); font-weight: 600; margin-bottom: 0.5rem; }
+.empty-state p { color: var(--gs-text-light); font-size: 0.95rem; margin: 0; }
+
+@media (max-width: 768px) {
+    .stats-container { margin: 1.5rem auto; width: 100%; padding: 0 1rem; }
+    .stats-container h1 { font-size: 1.75rem; }
+    .stats-grid { grid-template-columns: 1fr; gap: 1rem; }
+    .stat-card .card-body { padding: 1rem; flex-direction: column; text-align: center; }
+    .stat-card .stat-value-wrapper { flex-grow: 1; width: 100%; }
+    .stat-icon-wrapper { width: 100%; justify-self: center; }
+    .chart-card .card-body { padding: 1rem; }
+    #tournoiChart { max-height: 250px; }
+    .empty-state { padding: 2rem 1rem; }
+}
+
+@media (max-width: 480px) {
+    .stats-container h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
+    .stats-container > p { font-size: 0.9rem; margin-bottom: 1.5rem; }
+    .stat-card h3 { font-size: 2rem; }
+    .stat-card .card-body { padding: 1rem 0.75rem; }
+    .stat-icon-wrapper { width: 56px; height: 56px; }
+    .stat-icon-wrapper svg { width: 32px; height: 32px; }
+}

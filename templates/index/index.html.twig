@@ -7,7 +7,7 @@
 	<div class="presenter container mt-3">
 		<div class="d-flex justify-content-start">
 			<div class="badge-presenter d-inline-flex align-items-center px-3 py-2">
-				<svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" class="me-2" aria-hidden>
+				<svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="" class="me-2" aria-hidden>
 					<path d="M7.5 1L8.5 6H4.5L7.5 1Z" fill="#fff" opacity="0.9"/>
 				</svg>
 				<small class="text-white">Plateforme professionnelle</small>
@@ -17,20 +17,24 @@
 
 	<section class="hero container mt-2 p-4">
 		<div class="hero-inner d-flex align-items-center gap-4">
-			<div class="hero-copy" style="flex:1; max-width:640px;">
-				<div class="badge text-white mb-3" style="background:rgba(255,255,255,0.08); display:inline-block; padding:.35rem .75rem; border-radius:999px;">Plateforme professionnelle</div>
+					<div class="hero-copy">
+						<div class="badge-presenter d-inline-block mb-3">Plateforme professionnelle</div>
 				<h1 class="display-4 text-white mt-3">Organisez vos<br/>tournois comme un pro</h1>
 				<p class="lead text-white-90">Créez, gérez et suivez vos compétitions en temps réel. Brackets automatiques, statistiques avancées, et bien plus encore.</p>
 
 				<div class="hero-cta d-flex align-items-center gap-3 mt-4">
-					<button class="btn btn-new">+ Nouveau tournoi</button>
-					<input class="form-control form-control-search" placeholder="Rechercher un tournoi..." style="max-width:220px;"/>
+					<button type="button" class="btn btn-new me-2" data-bs-toggle="modal" data-bs-target="#tournois" aria-label="Nouveau tournoi">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus me-1" viewBox="0 0 16 16">
+                            <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"/>
+                        </svg>
+                        <span class="d-none d-md-inline">Nouveau tournoi</span>
+                    </button>
 				</div>
 			</div>
 
-			<div class="hero-visual" style="flex:0 0 420px;">
-				<div class="card card-visual shadow-sm" style="border-radius:12px; overflow:hidden;">
-					<img src="{{ asset('img/hero-sample.jpg') }}" alt="hero image" style="width:100%; display:block; height:250px; object-fit:cover;"/>
+			<div class="hero-visual">
+				<div class="card card-visual shadow-sm">
+					<img src="{{ asset('img/hero-sample.jpg') }}" alt="hero image" class="card-visual-img" />
 				</div>
 			</div>
 		</div>
@@ -54,16 +58,16 @@
 				<div class="col-12 col-md-6 col-lg-4">
 					<div class="card p-3 h-100">
 						<div class="d-flex align-items-start gap-3">
-							<div class="feature-icon rounded p-2" style="width:48px; height:48px; display:flex; align-items:center; justify-content:center;">
-								{% if f.icon == 'trophy' %}
-									<div style="background: rgba(13,102,253,0.08); width:100%; height:100%; border-radius:10px; display:flex; align-items:center; justify-content:center;">
+								<div class="feature-icon rounded p-2">
+                                	{% if f.icon == 'trophy' %}
+                                    	<div class="feature-accent feature-accent--blue">
 										<svg width="20" height="20" viewBox="0 0 16 16" fill="#0b3d91" xmlns="http://www.w3.org/2000/svg" aria-hidden>
 											<path d="M2 2h12v1a3 3 0 0 1-3 3v1a3 3 0 0 1 1 2v1H4v-1a3 3 0 0 1 1-2V6A3 3 0 0 1 2 4V2z"/>
 											<path d="M6 13v1a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-1H6z"/>
 										</svg>
 									</div>
 								{% elseif f.icon == 'graph-up' %}
-									<div style="background: rgba(34,197,94,0.08); width:100%; height:100%; border-radius:10px; display:flex; align-items:center; justify-content:center;">
+                                    	<div class="feature-accent feature-accent--green">
 										<svg width="20" height="20" viewBox="0 0 16 16" fill="#16a34a" xmlns="http://www.w3.org/2000/svg" aria-hidden>
 											<path d="M0 13h16v1H0v-1z"/>
 											<rect x="2" y="8" width="2" height="5" rx="0.5"/>
@@ -72,21 +76,21 @@
 										</svg>
 									</div>
 								{% elseif f.icon == 'people' %}
-									<div style="background: rgba(181,124,255,0.08); width:100%; height:100%; border-radius:10px; display:flex; align-items:center; justify-content:center;">
+                                    	<div class="feature-accent feature-accent--purple">
 										<svg width="20" height="20" viewBox="0 0 16 16" fill="#8b5cf6" xmlns="http://www.w3.org/2000/svg" aria-hidden>
 											<path d="M5.5 6a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zM11 6a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/>
 											<path d="M2 13s1-1 4-1 4 1 4 1v1H2v-1zM10 12s1-1 4-1 0 0 0 0v1h-4v-0z"/>
 										</svg>
 									</div>
 								{% elseif f.icon == 'speedometer' %}
-									<div style="background: rgba(255,159,67,0.08); width:100%; height:100%; border-radius:10px; display:flex; align-items:center; justify-content:center;">
+                                    	<div class="feature-accent feature-accent--orange">
 										<svg width="20" height="20" viewBox="0 0 16 16" fill="#ff7a45" xmlns="http://www.w3.org/2000/svg" aria-hidden>
 											<path d="M8 3a5 5 0 1 0 0 10A5 5 0 0 0 8 3z" opacity="0.08"/>
 											<path d="M8 4.5a.5.5 0 0 1 .5.5v2.5l1.5 1.5-.7.7L8 8.207V5a.5.5 0 0 1 .5-.5z"/>
 										</svg>
 									</div>
 								{% elseif f.icon == 'calendar' %}
-									<div style="background: rgba(255,77,109,0.08); width:100%; height:100%; border-radius:10px; display:flex; align-items:center; justify-content:center;">
+                                    	<div class="feature-accent feature-accent--pink">
 										<svg width="20" height="20" viewBox="0 0 16 16" fill="#ff4d6d" xmlns="http://www.w3.org/2000/svg" aria-hidden>
 											<rect x="2" y="3" width="12" height="10" rx="2"/>
 											<path d="M2 6h12" stroke="#fff" stroke-width="0.5" opacity="0.5"/>
@@ -94,7 +98,7 @@
 										</svg>
 									</div>
 								{% elseif f.icon == 'shield' %}
-									<div style="background: rgba(91,140,255,0.08); width:100%; height:100%; border-radius:10px; display:flex; align-items:center; justify-content:center;">
+                                    	<div class="feature-accent feature-accent--indigo">
 										<svg width="20" height="20" viewBox="0 0 16 16" fill="#5b8cff" xmlns="http://www.w3.org/2000/svg" aria-hidden>
 											<path d="M8 0L3 2v4c0 5 3 8 5 10 2-2 5-5 5-10V2L8 0z"/>
 										</svg>
@@ -114,5 +118,5 @@
 		</div>
 	</section>
 </main>
-
+{% include 'tournois/modal_new_tournoi.html.twig' %}
 {% endblock %}
