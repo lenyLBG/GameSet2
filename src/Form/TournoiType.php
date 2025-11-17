@@ -5,6 +5,7 @@ namespace App\Form;
 use App\Entity\Tournoi;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class TournoiType extends AbstractType
@@ -14,7 +15,16 @@ class TournoiType extends AbstractType
         $builder
             ->add('nom')
             ->add('sport')
-            ->add('format')
+            ->add('format', ChoiceType::class, [
+                'choices' => [
+                    'Élimination simple' => 'elimination_simple',
+                    'Double élimination' => 'double_elimination',
+                    'Round robin' => 'round_robin',
+                    'Libre' => 'libre',
+                ],
+                'placeholder' => 'Choisir un format',
+                'required' => false,
+            ])
             ->add('dateDebut')
             ->add('dateFin')
         ;

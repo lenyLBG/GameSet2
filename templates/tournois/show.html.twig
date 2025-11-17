@@ -136,5 +136,62 @@
             </div>
         </div>
     </div>
+            {% if bracket is defined and bracket %}
+            <div class="row justify-content-center mt-4">
+                <div class="col-md-12">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h3 class="mb-3">Tableau / Planning ({{ tournoi.format ?: 'N/A' }})</h3>
+
+                            <div id="bracketContainer" style="overflow:auto; padding:8px;">
+                                <svg id="bracketSvg" role="img" aria-label="Tableau du tournoi"></svg>
+                            </div>
+
+                            <noscript>
+                                <div class="mt-3">
+                                    <p class="text-muted">Activez JavaScript pour afficher le tableau visuel. Voici une version textuelle :</p>
+                                    {% if bracket.type == 'single_elimination' %}
+                                        {% for round in bracket.rounds %}
+                                            <h5>Tour {{ round.round }}</h5>
+                                            <ul class="list-group mb-3">
+                                                {% for m in round.matches %}
+                                                    <li class="list-group-item">{{ m.a.name }} {% if m.b %} vs {{ m.b.name }}{% else %} (Bye){% endif %}</li>
+                                                {% endfor %}
+                                            </ul>
+                                        {% endfor %}
+                                    {% elseif bracket.type == 'round_robin' %}
+                                        {% for round in bracket.rounds %}
+                                            <h5>Manche {{ round.round }}</h5>
+                                            <ul class="list-group mb-3">
+                                                {% for m in round.matches %}
+                                                    <li class="list-group-item">{{ m.a.name }}{% if m.b.name %} vs {{ m.b.name }}{% else %} (BYE){% endif %}</li>
+                                                {% endfor %}
+                                            </ul>
+                                        {% endfor %}
+                                    {% elseif bracket.type == 'double_elimination' %}
+                                        <h5>Arbre des gagnants</h5>
+                                        {% for round in bracket.winners.rounds %}
+                                            <h6>Tour {{ round.round }}</h6>
+                                            <ul class="list-group mb-3">
+                                                {% for m in round.matches %}
+                                                    <li class="list-group-item">{{ m.a.name }} {% if m.b %} vs {{ m.b.name }}{% else %} (Bye){% endif %}</li>
+                                                {% endfor %}
+                                            </ul>
+                                        {% endfor %}
+                                    {% else %}
+                                        <p class="text-muted">Aucun tableau automatique disponible pour ce format.</p>
+                                    {% endif %}
+                                </div>
+                            </noscript>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <script>
+                window.bracketData = {{ bracket|json_encode|raw }};
+            </script>
+            <script src="{{ asset('js/bracket.js') }}"></script>
+            {% endif %}
 </div>
 {% endblock %}

@@ -19,7 +19,13 @@
                 </div>
                 <div class="mb-3">
                     <label for="formatInput" class="form-label">Format</label>
-                    <input type="text" class="form-control" id="formatInput" name="format" placeholder="Ex: Simple">
+                    <select class="form-select" id="formatInput" name="format">
+                        <option value="">Choisir un format</option>
+                        <option value="elimination_simple">Élimination simple</option>
+                        <option value="double_elimination">Double élimination</option>
+                        <option value="round_robin">Round robin</option>
+                        <option value="libre">Libre</option>
+                    </select>
                 </div>
                 <div class="mb-3">
                     <label for="dateDebut" class="form-label">Date de début</label>

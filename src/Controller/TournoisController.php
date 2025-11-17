@@ -39,7 +39,7 @@ final class TournoisController extends AbstractController
     }
 
     #[Route('/tournoi/{id}', name: 'app_tournoi_show', methods: ['GET'], requirements: ['id' => '\\d+'])]
-    public function show(int $id, ManagerRegistry $doctrine): Response
+    public function show(int $id, ManagerRegistry $doctrine, \App\Service\BracketGenerator $bracketGenerator): Response
     {
         $repo = $doctrine->getRepository(Tournoi::class);
         $tournoi = $repo->find($id);
@@ -51,9 +51,13 @@ final class TournoisController extends AbstractController
         // only load pending requests
         $requests = $doctrine->getRepository(ParticipationRequest::class)->findBy(['tournoi' => $tournoi, 'status' => 'pending'], ['createdAt' => 'DESC']);
 
+        // generate bracket/schedule for the selected format
+        $bracket = $bracketGenerator->generate($tournoi);
+
         return $this->render('tournois/show.html.twig', [
             'tournoi' => $tournoi,
             'participation_requests' => $requests,
+            'bracket' => $bracket,
         ]);
     }
 
