@@ -60,6 +60,12 @@ final class TournoisController extends AbstractController
             throw $this->createNotFoundException('Tournoi non trouvé.');
         }
 
+        // Only creator or admin can delete
+        if (!$this->getUser() || $tournoi->getCreator() === null || ($this->getUser() !== $tournoi->getCreator() && !$this->isGranted('ROLE_ADMIN'))) {
+            $this->addFlash('error', 'Seul le créateur du tournoi peut le supprimer.');
+            return $this->redirectToRoute('app_tournoi_show', ['id' => $tournoi->getId()]);
+        }
+
         $submittedToken = $request->request->get('_token');
 
         if ($this->isCsrfTokenValid('delete'.$tournoi->getId(), $submittedToken)) {
@@ -77,6 +83,18 @@ final class TournoisController extends AbstractController
     #[Route('/tournoi/create', name: 'app_tournoi_create', methods: ['POST'])]
     public function create(Request $request, ManagerRegistry $doctrine): Response
     {
+        // Require authentication
+        if (!$this->getUser()) {
+            $this->addFlash('error', 'Vous devez être connecté pour créer un tournoi.');
+            return $this->redirectToRoute('app_tournois');
+        }
+
+        // Validate CSRF token
+        $submittedToken = $request->request->get('_token');
+        if (!$this->isCsrfTokenValid('create_tournoi', $submittedToken)) {
+            $this->addFlash('error', 'Jeton CSRF invalide.');
+            return $this->redirectToRoute('app_tournois');
+        }
         $nom = trim((string) $request->request->get('nom', ''));
         $sport = trim((string) $request->request->get('sport', ''));
         $format = trim((string) $request->request->get('format', ''));
@@ -118,6 +136,12 @@ final class TournoisController extends AbstractController
             $tournoi->setDateFin($dateFin);
         }
 
+        // set creator to current user
+        $user = $this->getUser();
+        if ($user) {
+            $tournoi->setCreator($user);
+        }
+
         $em = $doctrine->getManager();
         $em->persist($tournoi);
         $em->flush();
@@ -135,6 +159,12 @@ final class TournoisController extends AbstractController
 
         if (!$tournoi) {
             throw $this->createNotFoundException('Tournoi non trouv\u00e9.');
+        }
+
+        // Only creator or admin can edit
+        if (!$this->getUser() || $tournoi->getCreator() === null || ($this->getUser() !== $tournoi->getCreator() && !$this->isGranted('ROLE_ADMIN'))) {
+            $this->addFlash('error', 'Seul le créateur du tournoi peut le modifier.');
+            return $this->redirectToRoute('app_tournoi_show', ['id' => $tournoi->getId()]);
         }
 
         // Handle POST - simple form processing without a FormType for speed
@@ -184,5 +214,115 @@ final class TournoisController extends AbstractController
         return $this->render('tournois/edit.html.twig', [
             'tournoi' => $tournoi,
         ]);
+    }
+
+    #[Route('/tournoi/{id}/add-participant', name: 'app_tournoi_add_participant', methods: ['POST'])]
+    public function addParticipant(int $id, Request $request, ManagerRegistry $doctrine): Response
+    {
+        // Require authentication
+        if (!$this->getUser()) {
+            $this->addFlash('error', 'Vous devez être connecté pour ajouter des participants.');
+            return $this->redirectToRoute('app_tournoi_show', ['id' => $id]);
+        }
+
+        // CSRF check
+        $submittedToken = $request->request->get('_token');
+        if (!$this->isCsrfTokenValid('add_participant_'.$id, $submittedToken)) {
+            $this->addFlash('error', 'Jeton CSRF invalide.');
+            return $this->redirectToRoute('app_tournoi_show', ['id' => $id]);
+        }
+
+        $nom = trim((string) $request->request->get('nom', ''));
+        $coach = trim((string) $request->request->get('coach', ''));
+        $contact = trim((string) $request->request->get('contact', ''));
+
+        if ($nom === '') {
+            $this->addFlash('error', 'Le nom de l\'équipe est requis.');
+            return $this->redirectToRoute('app_tournoi_show', ['id' => $id]);
+        }
+
+        $em = $doctrine->getManager();
+        $tournoiRepo = $doctrine->getRepository(\App\Entity\Tournoi::class);
+        $equipeRepo = $doctrine->getRepository(\App\Entity\Equipe::class);
+
+        $tournoi = $tournoiRepo->find($id);
+        if (!$tournoi) {
+            $this->addFlash('error', 'Tournoi introuvable.');
+            return $this->redirectToRoute('app_tournois');
+        }
+
+        // Only creator or admin can add participants
+        if (!$this->getUser() || $tournoi->getCreator() === null || ($this->getUser() !== $tournoi->getCreator() && !$this->isGranted('ROLE_ADMIN'))) {
+            $this->addFlash('error', 'Seul le créateur du tournoi peut ajouter des participants.');
+            return $this->redirectToRoute('app_tournoi_show', ['id' => $id]);
+        }
+
+        // Try to find existing equipe by name
+        $existing = $equipeRepo->findOneBy(['nom' => $nom]);
+        if ($existing) {
+            $equipe = $existing;
+        } else {
+            $equipe = new \App\Entity\Equipe();
+            $equipe->setNom($nom);
+            $equipe->setCoach($coach !== '' ? $coach : null);
+            $equipe->setContact($contact !== '' ? $contact : null);
+            $em->persist($equipe);
+        }
+
+        // Associate equipe with tournoi if not already
+        if (!$equipe->getTournois()->contains($tournoi)) {
+            $equipe->addTournoi($tournoi);
+            $tournoi->addEquipe($equipe);
+            $em->persist($tournoi);
+            $em->flush();
+            $this->addFlash('success', 'Participant ajouté au tournoi.');
+        } else {
+            $this->addFlash('info', 'L\'équipe est déjà inscrite à ce tournoi.');
+        }
+
+        return $this->redirectToRoute('app_tournoi_show', ['id' => $id]);
+    }
+
+    #[Route('/tournoi/{id}/remove-participant/{equipeId}', name: 'app_tournoi_remove_participant', methods: ['POST'])]
+    public function removeParticipant(int $id, int $equipeId, Request $request, ManagerRegistry $doctrine): Response
+    {
+        if (!$this->getUser()) {
+            $this->addFlash('error', 'Vous devez être connecté pour modifier les participants.');
+            return $this->redirectToRoute('app_tournoi_show', ['id' => $id]);
+        }
+
+        $submittedToken = $request->request->get('_token');
+        if (!$this->isCsrfTokenValid('remove_participant_'.$id.'_'.$equipeId, $submittedToken)) {
+            $this->addFlash('error', 'Jeton CSRF invalide.');
+            return $this->redirectToRoute('app_tournoi_show', ['id' => $id]);
+        }
+
+        $em = $doctrine->getManager();
+        $tournoi = $doctrine->getRepository(\App\Entity\Tournoi::class)->find($id);
+        $equipe = $doctrine->getRepository(\App\Entity\Equipe::class)->find($equipeId);
+
+        if (!$tournoi || !$equipe) {
+            $this->addFlash('error', 'Ressource introuvable.');
+            return $this->redirectToRoute('app_tournois');
+        }
+
+        // Only creator or admin can remove participants
+        if (!$this->getUser() || $tournoi->getCreator() === null || ($this->getUser() !== $tournoi->getCreator() && !$this->isGranted('ROLE_ADMIN'))) {
+            $this->addFlash('error', 'Seul le créateur du tournoi peut modifier les participants.');
+            return $this->redirectToRoute('app_tournoi_show', ['id' => $id]);
+        }
+
+        if ($equipe->getTournois()->contains($tournoi)) {
+            $equipe->removeTournoi($tournoi);
+            $tournoi->removeEquipe($equipe);
+            $em->persist($equipe);
+            $em->persist($tournoi);
+            $em->flush();
+            $this->addFlash('success', 'Participant retiré.');
+        } else {
+            $this->addFlash('info', 'L\'équipe n\'est pas inscrite à ce tournoi.');
+        }
+
+        return $this->redirectToRoute('app_tournoi_show', ['id' => $id]);
     }
 }

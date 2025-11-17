@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\TournoiRepository;
+use App\Entity\User;
 
 #[ORM\Entity(repositoryClass: TournoiRepository::class)]
 class Tournoi
@@ -27,6 +28,16 @@ class Tournoi
 
     #[ORM\Column(type: 'date', nullable: true)]
     private ?\DateTimeInterface $dateFin = null;
+
+    /**
+     * @var \Doctrine\Common\Collections\Collection<int, \App\Entity\Equipe>
+     */
+    #[ORM\ManyToMany(targetEntity: \App\Entity\Equipe::class, mappedBy: 'tournois')]
+    private \Doctrine\Common\Collections\Collection $equipes;
+
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?User $creator = null;
 
     public function getId(): ?int
     {
@@ -89,6 +100,50 @@ class Tournoi
     public function setDateFin(?\DateTimeInterface $dateFin): static
     {
         $this->dateFin = $dateFin;
+
+        return $this;
+    }
+
+    public function __construct()
+    {
+        $this->equipes = new \Doctrine\Common\Collections\ArrayCollection();
+    }
+
+    public function getCreator(): ?User
+    {
+        return $this->creator;
+    }
+
+    public function setCreator(User $user): static
+    {
+        $this->creator = $user;
+
+        return $this;
+    }
+
+    /**
+     * @return \Doctrine\Common\Collections\Collection<int, \App\Entity\Equipe>
+     */
+    public function getEquipes(): \Doctrine\Common\Collections\Collection
+    {
+        return $this->equipes;
+    }
+
+    public function addEquipe(\App\Entity\Equipe $equipe): static
+    {
+        if (!$this->equipes->contains($equipe)) {
+            $this->equipes->add($equipe);
+            $equipe->addTournoi($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEquipe(\App\Entity\Equipe $equipe): static
+    {
+        if ($this->equipes->removeElement($equipe)) {
+            $equipe->removeTournoi($this);
+        }
 
         return $this;
     }

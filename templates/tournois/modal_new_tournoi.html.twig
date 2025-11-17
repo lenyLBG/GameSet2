@@ -6,7 +6,9 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
+            {% if app.user %}
             <form method="POST" action="/tournoi/create">
+                <input type="hidden" name="_token" value="{{ csrf_token('create_tournoi') }}">
                 <div class="mb-3">
                     <label for="tournoisControlInput1" class="form-label">Nom</label>
                     <input type="name" class="form-control" id="tournoisControlInput1" name="nom" placeholder="Nom du tournoi">
@@ -36,6 +38,12 @@
                     <button type="submit" class="btn btn-primary">Créer le tournoi</button>
                 </div>
             </form>
+            {% else %}
+                <div class="p-3 text-center">
+                    <p>Vous devez être connecté pour créer un tournoi.</p>
+                    <button class="btn btn-new" data-bs-toggle="modal" data-bs-target="#modal-login" data-bs-dismiss="modal">Se connecter</button>
+                </div>
+            {% endif %}
         </div>
         </div>
     </div>

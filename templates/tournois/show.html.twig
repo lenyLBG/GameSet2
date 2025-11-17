@@ -19,12 +19,63 @@
                         <a href="{{ path('app_tournois') }}" class="btn btn-secondary">Retour à la liste</a>
                     </div>
                     <div class="d-flex gap-2">
-                        <a href="{{ path('app_tournoi_edit', {'id': tournoi.id}) }}" class="btn btn-primary">Modifier</a>
-                        <form method="post" action="{{ path('app_tournoi_delete', {'id': tournoi.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce tournoi ?');">
-                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ tournoi.id) }}">
-                            <button class="btn btn-danger">Supprimer</button>
-                        </form>
+                        {% if app.user and tournoi.creator is not null and (app.user == tournoi.creator or is_granted('ROLE_ADMIN')) %}
+                            <a href="{{ path('app_tournoi_edit', {'id': tournoi.id}) }}" class="btn btn-primary">Modifier</a>
+                            <form method="post" action="{{ path('app_tournoi_delete', {'id': tournoi.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce tournoi ?');">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ tournoi.id) }}">
+                                <button class="btn btn-danger">Supprimer</button>
+                            </form>
+                        {% endif %}
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row justify-content-center mt-4">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h3 class="mb-3">Participants</h3>
+                    {% if tournoi.equipes is empty %}
+                        <p class="text-muted">Aucun participant pour le moment.</p>
+                    {% else %}
+                        <ul class="list-group mb-3">
+                            {% for equipe in tournoi.equipes %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>{{ equipe.nom }}</strong>
+                                        {% if equipe.coach %}<div class="text-muted small">Coach: {{ equipe.coach }}</div>{% endif %}
+                                    </div>
+                                    <div>
+                                        {% if app.user and tournoi.creator is not null and (app.user == tournoi.creator or is_granted('ROLE_ADMIN')) %}
+                                            <form method="post" action="{{ path('app_tournoi_remove_participant', {'id': tournoi.id, 'equipeId': equipe.id}) }}" onsubmit="return confirm('Retirer cet participant ?');">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('remove_participant_' ~ tournoi.id ~ '_' ~ equipe.id) }}">
+                                                <button class="btn btn-sm btn-outline-danger">Retirer</button>
+                                            </form>
+                                        {% endif %}
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+
+                    {% if app.user and tournoi.creator is not null and (app.user == tournoi.creator or is_granted('ROLE_ADMIN')) %}
+                        <h5>Ajouter un participant</h5>
+                        <form method="post" action="{{ path('app_tournoi_add_participant', {'id': tournoi.id}) }}" class="row g-2">
+                            <input type="hidden" name="_token" value="{{ csrf_token('add_participant_' ~ tournoi.id) }}">
+                            <div class="col-md-6">
+                                <input type="text" name="nom" class="form-control" placeholder="Nom de l'équipe" required>
+                            </div>
+                            <div class="col-md-3">
+                                <input type="text" name="coach" class="form-control" placeholder="Coach (optionnel)">
+                            </div>
+                            <div class="col-md-3 d-flex">
+                                <button class="btn btn-success w-100">Ajouter</button>
+                            </div>
+                        </form>
+                    {% else %}
+                        <p class="text-muted">Vous devez être connecté en tant que créateur pour ajouter des participants. <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal">Se connecter</a></p>
+                    {% endif %}
                 </div>
             </div>
         </div>
