@@ -80,86 +80,16 @@
 
         </div>
 
-        {% if chart_data %}
         <div class="row mt-4">
             <div class="col-md-8 mx-auto">
-                <div class="card chart-card">
+                <div class="card chart-card" {{ stimulus_controller('chart', { url: path('app_api_stats_tournois') }) }}>
                     <div class="card-body">
                         <h6 class="card-title">Tournois créés (6 derniers mois)</h6>
-                        <canvas id="tournoiChart" height="200"></canvas>
+                        <canvas data-chart-target="canvas" height="200"></canvas>
                     </div>
                 </div>
             </div>
         </div>
-
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-        <script>
-            const ctx = document.getElementById('tournoiChart').getContext('2d');
-            const chartData = {{ chart_data|json_encode|raw }};
-            const labels = Object.keys(chartData);
-            const data = Object.values(chartData).map(v => Number(v || 0));
-
-            // read primary color from CSS variables to keep visual consistency
-            const rootStyle = getComputedStyle(document.documentElement);
-            const primary = (rootStyle.getPropertyValue('--gs-primary') || rootStyle.getPropertyValue('--primary') || '#0b3d91').trim();
-
-            function hexToRgba(hex, alpha){
-                const h = hex.replace('#','');
-                const bigint = parseInt(h, 16);
-                const r = (bigint >> 16) & 255;
-                const g = (bigint >> 8) & 255;
-                const b = bigint & 255;
-                return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-            }
-
-            // create a vertical gradient fill
-            const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-            gradient.addColorStop(0, hexToRgba(primary, 0.18));
-            gradient.addColorStop(1, hexToRgba(primary, 0.02));
-
-            const maxVal = Math.max(...data, 1);
-
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Tournois créés',
-                        data: data,
-                        borderColor: primary,
-                        backgroundColor: gradient,
-                        tension: 0.36,
-                        fill: true,
-                        pointRadius: 4,
-                        pointHoverRadius: 6,
-                        pointBackgroundColor: primary,
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: true, position: 'top' },
-                        tooltip: { mode: 'index', intersect: false }
-                    },
-                    scales: {
-                        x: {
-                            grid: { display: false },
-                            ticks: { color: getComputedStyle(document.documentElement).getPropertyValue('--gs-text') || '#333' }
-                        },
-                        y: {
-                            beginAtZero: true,
-                            suggestedMax: Math.ceil(maxVal + Math.max(1, maxVal * 0.2)),
-                            ticks: { stepSize: 1, color: getComputedStyle(document.documentElement).getPropertyValue('--gs-text') || '#333' },
-                            grid: { color: 'rgba(0,0,0,0.04)' }
-                        }
-                    },
-                    interaction: { mode: 'nearest', axis: 'x', intersect: false }
-                }
-            });
-        </script>
-        {% endif %}
 
         {% if total_tournois == 0 %}
         <div class="row mt-4">

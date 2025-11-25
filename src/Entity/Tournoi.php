@@ -35,9 +35,19 @@ class Tournoi
     #[ORM\ManyToMany(targetEntity: \App\Entity\Equipe::class, mappedBy: 'tournois')]
     private \Doctrine\Common\Collections\Collection $equipes;
 
+    /**
+     * @var \Doctrine\Common\Collections\Collection<int, \App\Entity\Rencontre>
+     */
+    #[ORM\OneToMany(mappedBy: 'tournoi', targetEntity: \App\Entity\Rencontre::class, cascade: ['persist','remove'])]
+    private \Doctrine\Common\Collections\Collection $rencontres;
+
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: true)]
     private ?User $creator = null;
+
+    #[ORM\ManyToOne(targetEntity: \App\Entity\Equipe::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?\App\Entity\Equipe $winner = null;
 
     public function getId(): ?int
     {
@@ -107,6 +117,7 @@ class Tournoi
     public function __construct()
     {
         $this->equipes = new \Doctrine\Common\Collections\ArrayCollection();
+        $this->rencontres = new \Doctrine\Common\Collections\ArrayCollection();
     }
 
     public function getCreator(): ?User
@@ -144,6 +155,47 @@ class Tournoi
         if ($this->equipes->removeElement($equipe)) {
             $equipe->removeTournoi($this);
         }
+
+        return $this;
+    }
+
+    /**
+     * @return \Doctrine\Common\Collections\Collection<int, \App\Entity\Rencontre>
+     */
+    public function getRencontres(): \Doctrine\Common\Collections\Collection
+    {
+        return $this->rencontres;
+    }
+
+    public function addRencontre(\App\Entity\Rencontre $r): static
+    {
+        if (!$this->rencontres->contains($r)) {
+            $this->rencontres->add($r);
+            $r->setTournoi($this);
+        }
+
+        return $this;
+    }
+
+    public function removeRencontre(\App\Entity\Rencontre $r): static
+    {
+        if ($this->rencontres->removeElement($r)) {
+            if ($r->getTournoi() === $this) {
+                $r->setTournoi(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getWinner(): ?\App\Entity\Equipe
+    {
+        return $this->winner;
+    }
+
+    public function setWinner(?\App\Entity\Equipe $winner): static
+    {
+        $this->winner = $winner;
 
         return $this;
     }

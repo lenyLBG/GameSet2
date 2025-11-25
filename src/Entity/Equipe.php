@@ -54,12 +54,19 @@ class Equipe
     #[ORM\ManyToMany(targetEntity: User::class, mappedBy: 'equipe')]
     private Collection $users;
 
+    /**
+     * @var array
+     */
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $manualParticipants = [];
+
     public function __construct()
     {
         $this->rencontres = new ArrayCollection();
     $this->rencontresVisiteur = new ArrayCollection();
         $this->tournois = new ArrayCollection();
         $this->users = new ArrayCollection();
+        $this->manualParticipants = [];
     }
 
     public function getId(): ?int
@@ -206,6 +213,49 @@ class Equipe
     {
         if ($this->users->removeElement($user)) {
             $user->removeEquipe($this);
+        }
+
+        return $this;
+    }
+
+    public function getManualParticipants(): array
+    {
+        // Always return an array, never null
+        if (!is_array($this->manualParticipants)) {
+            $this->manualParticipants = [];
+        }
+        return $this->manualParticipants;
+    }
+
+    public function setManualParticipants(?array $manualParticipants): static
+    {
+        // Ensure we always have an array, not null
+        $this->manualParticipants = is_array($manualParticipants) ? $manualParticipants : [];
+
+        return $this;
+    }
+
+    public function addManualParticipant(string $name): static
+    {
+        // Ensure manualParticipants is always an array
+        if (!is_array($this->manualParticipants)) {
+            $this->manualParticipants = [];
+        }
+        
+        if (!in_array($name, $this->manualParticipants)) {
+            $this->manualParticipants[] = $name;
+        }
+
+        return $this;
+    }
+
+    public function removeManualParticipant(string $name): static
+    {
+        // Ensure manualParticipants is always an array
+        if (!is_array($this->manualParticipants)) {
+            $this->manualParticipants = [];
+        } else {
+            $this->manualParticipants = array_filter($this->manualParticipants, fn($p) => $p !== $name);
         }
 
         return $this;

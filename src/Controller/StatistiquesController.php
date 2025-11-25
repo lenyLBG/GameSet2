@@ -37,19 +37,21 @@ final class StatistiquesController extends AbstractController
         // Get all teams
         $totalEquipes = count($equipeRepository->findAll());
 
-        // Get tournament data for last 6 months for chart
-        $chartData = $this->getChartData($tournoiRepository);
-
         return $this->render('statistiques/index.html.twig', [
             'total_tournois' => $totalTournois,
             'total_equipes' => $totalEquipes,
             'total_completed' => $totalCompletedTournois,
             'total_ongoing' => $totalOngoingTournois,
-            'chart_data' => $chartData,
         ]);
     }
 
-    private function getChartData(TournoiRepository $tournoiRepository): array
+    #[Route('/api/stats/tournois', name: 'app_api_stats_tournois')]
+    public function getTournoiChartData(TournoiRepository $tournoiRepository): Response
+    {
+        $chartData = $this->getChartData($tournoiRepository);
+        return $this->json($chartData);
+    }
+        private function getChartData(TournoiRepository $tournoiRepository): array
     {
         $monthsData = [];
         $now = new \DateTime();

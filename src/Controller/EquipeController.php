@@ -25,15 +25,22 @@ final class EquipeController extends AbstractController
     #[Route('/new', name: 'app_equipe_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
+        $this->denyAccessUnlessGranted('ROLE_USER');
+
         $equipe = new Equipe();
         $form = $this->createForm(EquipeType::class, $equipe);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            /** @var \App\Entity\User $user */
+            $user = $this->getUser();
+            $equipe->addUser($user);
+            
             $entityManager->persist($equipe);
             $entityManager->flush();
 
-            return $this->redirectToRoute('app_equipe_index', [], Response::HTTP_SEE_OTHER);
+            $this->addFlash('success', 'Équipe créée avec succès !');
+            return $this->redirectToRoute('app_profile', [], Response::HTTP_SEE_OTHER);
         }
 
         return $this->render('equipe/new.html.twig', [
