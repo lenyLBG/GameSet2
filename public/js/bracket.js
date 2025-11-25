@@ -28,6 +28,14 @@ document.addEventListener('DOMContentLoaded', function(){
         return rect;
     }
 
+    function makeClickable(el, match){
+        el.style.cursor = 'pointer';
+        el.addEventListener('click', (ev) => {
+            ev.stopPropagation();
+            openMatchModal(match);
+        });
+    }
+
     function createText(x,y,txt,cls){
         const t = document.createElementNS('http://www.w3.org/2000/svg','text');
         t.setAttribute('x', x);
@@ -77,6 +85,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
                 // box
                 const rect = createRect(gX, gY, 180, boxH, 6,6,'bracket-box');
+                rect.setAttribute('data-match-id', m.id ?? '');
                 svg.appendChild(rect);
 
                 // left team text
@@ -86,6 +95,13 @@ document.addEventListener('DOMContentLoaded', function(){
                 // vs or bye
                 const tB = createText(gX + 10, gY + boxH/2 + 12, m.b ? ('vs ' + m.b.name) : '(Bye)', 'bracket-subtext');
                 svg.appendChild(tB);
+
+                // make box clickable when match id present
+                if (m.id !== undefined && m.id !== null) {
+                    makeClickable(rect, m);
+                    makeClickable(tA, m);
+                    makeClickable(tB, m);
+                }
 
                 positions[ri][mi] = {x: gX + 180, y: gY + boxH/2};
             });
@@ -119,18 +135,92 @@ document.addEventListener('DOMContentLoaded', function(){
             const title = createText(left, y + 10, 'Manche ' + r.round, 'bracket-title');
             svg.appendChild(title);
             y += 24;
-            r.matches.forEach((m) => {
+                r.matches.forEach((m) => {
                 const txt = (m.a ? m.a.name : 'TBD') + (m.b && m.b.name ? ' vs ' + m.b.name : ' (BYE)');
                 const t = createText(left + 8, y + 10, txt, 'bracket-text');
                 svg.appendChild(t);
                 y += lineH;
-            });
+                    // add click on text to open modal for persisted matches
+                    if (m.id !== undefined && m.id !== null) {
+                        t.addEventListener('click', () => openMatchModal(m));
+                        t.style.cursor = 'pointer';
+                    }
+                });
             y += 10;
         });
     }
 
+    function openMatchModal(match){
+        // find modal elements
+        const modalEl = document.getElementById('matchModal');
+        if (!modalEl) return;
+        const bsModal = new bootstrap.Modal(modalEl);
+        const matchTeams = document.getElementById('matchTeams');
+        const matchId = document.getElementById('matchId');
+        const csrfInput = document.getElementById('matchCsrf');
+        const scoreA = document.getElementById('scoreA');
+        const scoreB = document.getElementById('scoreB');
+
+        matchTeams.textContent = (match.a && match.a.name ? match.a.name : (match.a || 'TBD')) + ' — ' + (match.b && match.b.name ? match.b.name : (match.b || 'TBD'));
+        matchId.value = match.id;
+        scoreA.value = match.score_a ?? (match.scoreA ?? '');
+        scoreB.value = match.score_b ?? (match.scoreB ?? '');
+
+        // attach CSRF token if available in global map
+        if (window.bracketCsrf && window.bracketCsrf[match.id]) {
+            csrfInput.value = window.bracketCsrf[match.id];
+        } else {
+            csrfInput.value = '';
+        }
+
+        // show modal
+        bsModal.show();
+    }
+
+    // AJAX submit for match modal
+    (function attachModalSubmit(){
+        const modalForm = document.getElementById('matchScoreForm');
+        if (!modalForm) return;
+        modalForm.addEventListener('submit', async function(ev){
+            ev.preventDefault();
+            const id = document.getElementById('matchId').value;
+            const token = document.getElementById('matchCsrf').value;
+            const a = document.getElementById('scoreA').value;
+            const b = document.getElementById('scoreB').value;
+
+            if (!id) return;
+
+            const form = new URLSearchParams();
+            form.append('_token', token);
+            form.append('score_a', a);
+            form.append('score_b', b);
+
+            try {
+                const resp = await fetch(`/rencontre/${id}/score`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: form.toString(),
+                });
+                if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                // refresh to reflect new persisted state (and potential promotion)
+                location.reload();
+            } catch (e) {
+                console.error('Failed to save match score', e);
+                alert('Impossible d\'enregistrer le score — vérifiez la console.');
+            }
+        });
+    })();
+
     function render(br){
         if (!br) return;
+        // support persisted structure (array of rounds with id'd matches)
+        if (Array.isArray(br) && br.length > 0 && br[0].matches && br[0].matches.length > 0 && br[0].matches[0].id !== undefined) {
+            // convert to a compatible structure for renderSingleElimination: map matches with name fields
+            const rounds = br.map(r => ({ matches: r.matches.map(m => ({ a: { name: m.a || (m.a_id ? 'Team ' + m.a_id : null) }, b: { name: m.b || (m.b_id ? 'Team ' + m.b_id : null) }, id: m.id, score_a: m.score_a, score_b: m.score_b, status: m.status, position: m.position })) }));
+            renderSingleElimination(rounds);
+            return;
+        }
+
         if (br.type === 'single_elimination') {
             renderSingleElimination(br.rounds);
         } else if (br.type === 'round_robin') {

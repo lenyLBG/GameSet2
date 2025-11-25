@@ -1,0 +1,33 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mon Profil{% endblock %}
+
+{% block body %}
+    <div class="container mt-5">
+        <h1>Mon Profil</h1>
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Informations utilisateur</h5>
+                <p><strong>Email :</strong> {{ user.email }}</p>
+                {# You can add more user details here as needed #}
+                {# For example, if you have a 'username' property: #}
+                <p><strong>Nom :</strong> {{ user.prenom }} {{ user.nom }}</p>
+
+                <h5 class="mt-4">Mes équipes</h5>
+                {% if user.equipe is not empty %}
+                    <ul class="list-group">
+                        {% for equipe in user.equipe %}
+                            <li class="list-group-item">{{ equipe.nom }}</li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>Vous n'êtes membre d'aucune équipe pour le moment.</p>
+                {% endif %}
+                
+                <a href="{{ path('app_equipe_new') }}" class="btn btn-primary mt-3">Créer une nouvelle équipe</a>
+                
+                <a href="{{ path('app_logout') }}" class="btn btn-danger mt-4">Déconnexion</a>
+            </div>
+        </div>
+    </div>
+{% endblock %}

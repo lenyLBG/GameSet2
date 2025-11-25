@@ -1,11 +1,27 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}New Equipe{% endblock %}
+{% block title %}Créer une nouvelle équipe{% endblock %}
 
 {% block body %}
-    <h1>Create new Equipe</h1>
+    <div class="container mt-5">
+        <h1>Créer une nouvelle équipe</h1>
 
-    {{ include('equipe/_form.html.twig') }}
+        <div class="card">
+            <div class="card-body">
+                {{ form_start(form) }}
+                
+                {# We only render the fields we want the user to fill #}
+                {{ form_row(form.nom) }}
+                {{ form_row(form.sport) }}
+                {{ form_row(form.coach) }}
+                {{ form_row(form.contact) }}
 
-    <a href="{{ path('app_equipe_index') }}">back to list</a>
+                <button class="btn btn-primary mt-3">{{ button_label|default("Créer l'équipe") }}</button>
+                
+                {{ form_end(form) }}
+            </div>
+        </div>
+
+        <a href="{{ path('app_profile') }}" class="btn btn-secondary mt-3">Retour au profil</a>
+    </div>
 {% endblock %}
