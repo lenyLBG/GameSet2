@@ -44,7 +44,8 @@
 			<div class="col-sm-3">
 				<div class="card">
 					<div class="card-body">
-						<h5 class="card-title text-center fw-bold"> &lt; 2min</h5>
+						<h5 class="card-title text-center fw-bold">
+							&lt; 2min</h5>
 						<p class="card-text">
 							<small class="text-body-secondary">Temps de Setup</small>
 						</p>
@@ -79,7 +80,7 @@
 						<p class="card-text">
 							<small class="text-body-secondary">
 								Créez et gérez facilement vos tournois avec différents formats
-								                        (élimination simple, double élimination, round robin).
+																								                        (élimination simple, double élimination, round robin).
 							</small>
 						</p>
 					</div>
@@ -133,52 +134,81 @@
 		</div>
 		<div class="card">
 			<div
-				class="card-body">{# Format de tournois supportés #}
-                <h5 class="fw-medium">Formats de Tournois Supportés</h5>
-                <div class="card-group ">
-                    <div class="card border-0">
-                        <div class="card-body">
-                        <h5 class="card-title fw-semibold">Élimination Simple</h5>
-                        <p class="card-text"><small class="text-body-secondary">Format classique où chaque défaite élimine le participant.</small></p>
-                        </div>
-                    </div>
-                    <div class="card border-0">
-                        <div class="card-body">
-                        <h5 class="card-title fw-semibold ">Double Elimination</h5>
-                        <p class="card-text"><small class="text-body-secondary">Deux chances pour chaque participant avec bracket des perdants.</small></p>
-                        </div>
-                    </div>
-                    <div class="card border-0">
-                        <div class="card-body">
-                        <h5 class="card-title fw-semibold">Round Robin</h5>
-                        <p class="card-text"><small class="text-body-secondary ">Chaque participant affronte tous les autres participants.</small></p>
-                        </div>
-                    </div>
-                </div>
+				class="card-body">
+				{# Format de tournois supportés #}
+				<h5 class="fw-medium">Formats de Tournois Supportés</h5>
+				<div class="card-group ">
+					<div class="card border-0">
+						<div class="card-body">
+							<h5 class="card-title fw-semibold">Élimination Simple</h5>
+							<p class="card-text">
+								<small class="text-body-secondary">Format classique où chaque défaite élimine le participant.</small>
+							</p>
+						</div>
+					</div>
+					<div class="card border-0">
+						<div class="card-body">
+							<h5 class="card-title fw-semibold ">Double Elimination</h5>
+							<p class="card-text">
+								<small class="text-body-secondary">Deux chances pour chaque participant avec bracket des perdants.</small>
+							</p>
+						</div>
+					</div>
+					<div class="card border-0">
+						<div class="card-body">
+							<h5 class="card-title fw-semibold">Round Robin</h5>
+							<p class="card-text">
+								<small class="text-body-secondary ">Chaque participant affronte tous les autres participants.</small>
+							</p>
+						</div>
+					</div>
+				</div>
 			</div>
 		</div>
-		<div class="card mt-4">
-			<div
-				class="card-body">{# Technologies utilisées #}
-                <h5 class="fw-semibold">Technologies Utilisées</h5>
-                <p><small class="text-body-secondary">GameSet est construit avec les technologies modernes suivantes :</small></p>
-                <ul>
-                    <li><small class="text-body-secondary">Backend : Symfony (PHP)</small></li>
-                    <li><small class="text-body-secondary">Frontend : Twig, Bootstrap</small></li>
-                    <li><small class="text-body-secondary">Base de données : MySQL/PostgreSQL</small></li>
-                    <li><small class="text-body-secondary">Hébergement : Serveurs sécurisés avec sauvegardes régulières</small></li>
+		<section class="mt-5 expanded-section">
+					{# Technologies utilisées #}
+					<div id="carouselExampleCaptions" class="carousel slide" data-bs-ride="carousel">
+						<div class="carousel-indicators">
+							<button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+							<button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="1" aria-label="Slide 2"></button>
+							<button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="2" aria-label="Slide 3"></button>
+						</div>
+						<div class="carousel-inner">
+							<div class="carousel-item active">
+								<img src="{{asset('img/carousel/AV1.png')}}" class="d-block w-100" alt="Avis client 1">
+								<div class="carousel-caption d-none d-md-block"></div>
+							</div>
+							<div class="carousel-item">
+								<img src="{{asset('img/carousel/AV2.png')}}" class="d-block w-100" alt="Avis client 2">
+								<div class="carousel-caption d-none d-md-block"></div>
+							</div>
+							<div class="carousel-item">
+								<img src="{{asset('img/carousel/AV3.png')}}" class="d-block w-100" alt="Avis client 3">
+								<div class="carousel-caption d-none d-md-block"></div>
+							</div>
+						</div>
+						<button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide="prev">
+							<span class="carousel-control-prev-icon" aria-hidden="true"></span>
+							<span class="visually-hidden">Previous</span>
+						</button>
+						<button class="carousel-control-next" type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide="next">
+							<span class="carousel-control-next-icon" aria-hidden="true"></span>
+							<span class="visually-hidden">Next</span>
+						</button>
+					</div>
+		</section>
+			<div class="card mt-4">
+				<div class="card-body">
+					<h5 class="fw-light">Feedback et support</h5>
+					<p>
+						<small class="text-body-secondary">Vous avez des questions, des suggestions ou besoin d'aide ? N'hésitez pas à nous contacter !</small>
+					</p>
+					<div class="d-grid gap-2">
+						<button type="button" class="btn btn-outline-light text-dark text-start border border-dark-subtle">Signaler un bug</button>
+						<button type="button" class="btn btn-outline-light text-dark text-start border border-dark-subtle">Demander une fonctionnalité</button>
+						<button type="button" class="btn btn-outline-light text-dark text-start border border-dark-subtle">Contacter le support</button>
+					</div>
+				</div>
 			</div>
 		</div>
-		<div class="card mt-4">
-			<div class="card-body">
-                <h5 class="fw-light">Feedback et support</h5>
-                <p><small class="text-body-secondary">Vous avez des questions, des suggestions ou besoin d'aide ? N'hésitez pas à nous contacter !</small></p>
-                <div class="d-grid gap-2">
-                    <button type="button" class="btn btn-outline-light text-dark text-start border border-dark-subtle">Signaler un bug</button>
-                    <button type="button" class="btn btn-outline-light text-dark text-start border border-dark-subtle">Demander une fonctionnalité</button>
-                    <button type="button" class="btn btn-outline-light text-dark text-start border border-dark-subtle">Contacter le support</button>
-                </div>
-            </div>
-		</div>
-	</div>
-{% endblock %}
+	{% endblock %}
