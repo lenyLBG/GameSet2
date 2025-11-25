@@ -17,7 +17,9 @@
                 {% if user.equipe is not empty %}
                     <ul class="list-group">
                         {% for equipe in user.equipe %}
-                            <li class="list-group-item">{{ equipe.nom }}</li>
+                            <li class="list-group-item">
+                                <a href="{{ path('app_equipe_show', {'id': equipe.id}) }}">{{ equipe.nom }}</a>
+                            </li>
                         {% endfor %}
                     </ul>
                 {% else %}

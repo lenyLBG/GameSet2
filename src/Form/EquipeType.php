@@ -19,16 +19,6 @@ class EquipeType extends AbstractType
             ->add('coach')
             ->add('contact')
             ->add('sport')
-            ->add('tournois', EntityType::class, [
-                'class' => Tournoi::class,
-                'choice_label' => 'nom',
-                'multiple' => true,
-            ])
-            ->add('users', EntityType::class, [
-                'class' => User::class,
-                'choice_label' => 'nom',
-                'multiple' => true,
-            ])
         ;
     }
 

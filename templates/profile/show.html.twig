@@ -1,0 +1,64 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mon Profil{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    Photo de profil
+                </div>
+                <div class="card-body text-center">
+                    <img src="{{ asset(user.avatar ? ('uploads/avatars/' ~ user.avatar) : 'img/avatar-placeholder.png') }}" alt="Photo de profil" class="img-fluid rounded-circle mb-3" width="150" height="150">
+                    <h5 class="card-title">{{ user.prenom }} {{ user.nom }}</h5>
+                    <p class="card-text text-muted">{{ user.email }}</p>
+                    <div class="d-flex justify-content-center gap-2">
+                        <a href="{{ path('app_profile_settings') }}" class="btn btn-secondary btn-sm">Paramètres du compte</a>
+                        <form method="post" action="{{ path('app_logout') }}" style="display:inline;">
+                            <input type="hidden" name="_token" value="{{ csrf_token('logout') }}">
+                            <button type="submit" class="btn btn-danger btn-sm">Déconnexion</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="card mt-4">
+                <div class="card-header">
+                    Informations
+                </div>
+                <div class="card-body">
+                    <p><strong>Licence :</strong> {{ user.licence ?: 'Non renseignée' }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    Mes équipes
+                </div>
+                <div class="card-body">
+                    {% if user.equipe is not empty %}
+                        <div class="list-group">
+                            {% for equipe in user.equipe %}
+                                <a href="{{ path('app_equipe_show', {'id': equipe.id}) }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                    {{ equipe.nom }}
+                                    <span class="badge bg-primary rounded-pill">{{ equipe.users|length }} membres</span>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-center">Vous n'êtes membre d'aucune équipe pour le moment.</p>
+                    {% endif %}
+                    <hr>
+                    <div class="text-center">
+                        <a href="{{ path('app_equipe_new') }}" class="btn btn-success">
+                            <i class="fas fa-plus-circle"></i> Créer une nouvelle équipe
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
