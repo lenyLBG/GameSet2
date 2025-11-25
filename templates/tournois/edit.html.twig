@@ -24,7 +24,13 @@
 
                         <div class="mb-3">
                             <label for="format" class="form-label">Format</label>
-                            <input type="text" id="format" name="format" class="form-control" value="{{ tournoi.format }}">
+                            <select id="format" name="format" class="form-select">
+                                <option value="" {% if not tournoi.format %}selected{% endif %}>Choisir un format</option>
+                                <option value="elimination_simple" {% if tournoi.format == 'elimination_simple' %}selected{% endif %}>Élimination simple</option>
+                                <option value="double_elimination" {% if tournoi.format == 'double_elimination' %}selected{% endif %}>Double élimination</option>
+                                <option value="round_robin" {% if tournoi.format == 'round_robin' %}selected{% endif %}>Round robin</option>
+                                <option value="libre" {% if tournoi.format == 'libre' %}selected{% endif %}>Libre</option>
+                            </select>
                         </div>
 
                         <div class="mb-3">

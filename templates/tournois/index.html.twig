@@ -15,14 +15,20 @@
             <p class="lead mb-1 text-muted">Gérez tous vos tournois ({{ tournois|default([])|length }} au total)</p>
         </div>
 
-        <div class="d-flex align-items-center gap-3 hero-right">
+            <div class="d-flex align-items-center gap-3 hero-right">
             <form class="d-none d-md-flex align-items-center" method="get" action="{{ path('app_tournois') }}">
                 <input class="form-control form-control-search me-2" name="q" type="search" placeholder="Rechercher un tournoi..." aria-label="Search" value="{{ q|default('') }}"/>
             </form>
 
+            {% if app.user %}
             <button type="button" class="btn btn-new" data-bs-toggle="modal" data-bs-target="#tournois">
                 <span class="me-2">+</span> Nouveau tournoi
             </button>
+            {% else %}
+            <button type="button" class="btn btn-new" data-bs-toggle="modal" data-bs-target="#modal-login">
+                <span class="me-2">+</span> Nouveau tournoi
+            </button>
+            {% endif %}
         </div>
     </div>
 </section>
