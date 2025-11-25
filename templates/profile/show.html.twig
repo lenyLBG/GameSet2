@@ -41,10 +41,18 @@
                     {% if user.equipe is not empty %}
                         <div class="list-group">
                             {% for equipe in user.equipe %}
-                                <a href="{{ path('app_equipe_show', {'id': equipe.id}) }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                <button type="button"
+                                    class="list-group-item list-group-item-action d-flex justify-content-between align-items-center btn-equipe-details"
+                                    data-id="{{ equipe.id }}"
+                                    data-nom="{{ equipe.nom|e('html_attr') }}"
+                                    data-coach="{{ equipe.coach ?: ''|e('html_attr') }}"
+                                    data-contact="{{ equipe.contact ?: ''|e('html_attr') }}"
+                                    data-sport="{{ equipe.sport ?: ''|e('html_attr') }}"
+                                    data-members="{{ equipe.users|map(u => u.prenom ~ ' ' ~ u.nom)|json_encode|e('html_attr') }}"
+                                    data-csrf="{{ csrf_token('equipe_ajax_edit_' ~ equipe.id) }}">
                                     {{ equipe.nom }}
                                     <span class="badge bg-primary rounded-pill">{{ equipe.users|length }} membres</span>
-                                </a>
+                                </button>
                             {% endfor %}
                         </div>
                     {% else %}
@@ -61,4 +69,204 @@
         </div>
     </div>
 </div>
+    {# Modal for team details - single reusable modal #}
+    <div class="modal fade" id="equipeDetailsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title equipe-modal-title"></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <dl class="row">
+                        <dt class="col-4">Coach</dt>
+                        <dd class="col-8 equipe-modal-coach">—</dd>
+
+                        <dt class="col-4">Contact</dt>
+                        <dd class="col-8 equipe-modal-contact">—</dd>
+
+                        <dt class="col-4">Sport</dt>
+                        <dd class="col-8 equipe-modal-sport">—</dd>
+
+                        <dt class="col-12 mt-2">Membres</dt>
+                        <dd class="col-12">
+                            <ul class="list-unstyled equipe-modal-members mb-0"></ul>
+                        </dd>
+                    </dl>
+                </div>
+                <div class="modal-footer equipe-modal-actions">
+                    <a href="#" class="btn btn-outline-primary btn-edit">Éditer</a>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const modalEl = document.getElementById('equipeDetailsModal');
+            if (!modalEl) return;
+            const bsModal = new bootstrap.Modal(modalEl);
+
+            document.querySelectorAll('.btn-equipe-details').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    const id = this.dataset.id || '';
+                    const nom = this.dataset.nom || '';
+                    const coach = this.dataset.coach || '';
+                    const contact = this.dataset.contact || '';
+                    const sport = this.dataset.sport || '';
+                    const membersJson = this.dataset.members || '[]';
+
+                    let members = [];
+                    try {
+                        members = JSON.parse(membersJson);
+                    } catch (e) {
+                        members = [];
+                    }
+
+                    modalEl.querySelector('.equipe-modal-title').textContent = nom;
+                    modalEl.querySelector('.equipe-modal-coach').textContent = coach || '—';
+                    modalEl.querySelector('.equipe-modal-contact').textContent = contact || '—';
+                    modalEl.querySelector('.equipe-modal-sport').textContent = sport || '—';
+
+                    const membersList = modalEl.querySelector('.equipe-modal-members');
+                    membersList.innerHTML = '';
+                    if (members.length) {
+                        members.forEach(function (m) {
+                            const li = document.createElement('li');
+                            li.textContent = m;
+                            membersList.appendChild(li);
+                        });
+                    } else {
+                        const li = document.createElement('li');
+                        li.className = 'text-muted';
+                        li.textContent = 'Aucun membre listé';
+                        membersList.appendChild(li);
+                    }
+
+                    // view button removed — no link to set
+                    // store context for edit operations
+                    modalEl.dataset.equipeId = id;
+                    modalEl.dataset.sourceButtonSelector = '[data-id="' + id + '"]';
+                    modalEl.dataset.csrf = this.dataset.csrf || '';
+
+                    // ensure edit button is in default state
+                    const editBtn = modalEl.querySelector('.equipe-modal-actions .btn-edit');
+                    editBtn.textContent = 'Éditer';
+                    editBtn.classList.remove('btn-save');
+                    editBtn.classList.add('btn-edit');
+
+                    bsModal.show();
+                });
+            });
+
+            // handle edit/save from modal
+            const editBtnGlobal = modalEl.querySelector('.equipe-modal-actions .btn-edit');
+            editBtnGlobal.addEventListener('click', function (ev) {
+                ev.preventDefault();
+                const isSaveMode = editBtnGlobal.classList.contains('btn-save');
+                const equipeId = modalEl.dataset.equipeId;
+                if (!equipeId) return;
+
+                if (!isSaveMode) {
+                    // switch to edit mode: replace fields with inputs
+                    const titleEl = modalEl.querySelector('.equipe-modal-title');
+                    const currentTitle = titleEl.textContent || '';
+                    titleEl.innerHTML = '<input type="text" class="form-control equipe-input-nom" value="' + currentTitle.replace(/"/g, '&quot;') + '">';
+
+                    ['coach', 'contact', 'sport'].forEach(function (field) {
+                        const el = modalEl.querySelector('.equipe-modal-' + field);
+                        const val = el.textContent === '—' ? '' : el.textContent;
+                        el.innerHTML = '<input type="text" class="form-control equipe-input-' + field + '" value="' + (val || '') + '">';
+                    });
+
+                    // change buttons: edit -> save, show cancel
+                    editBtnGlobal.textContent = 'Enregistrer';
+                    editBtnGlobal.classList.add('btn-save');
+                    editBtnGlobal.classList.remove('btn-edit');
+
+                    // add cancel button if not present
+                    if (!modalEl.querySelector('.equipe-modal-actions .btn-cancel')) {
+                        const cancel = document.createElement('button');
+                        cancel.type = 'button';
+                        cancel.className = 'btn btn-outline-secondary btn-cancel';
+                        cancel.textContent = 'Annuler';
+                        cancel.addEventListener('click', function () { location.reload(); });
+                        modalEl.querySelector('.equipe-modal-actions').insertBefore(cancel, modalEl.querySelector('.equipe-modal-actions .btn-secondary'));
+                    }
+
+                } else {
+                    // save via AJAX
+                    const nom = modalEl.querySelector('.equipe-input-nom').value.trim();
+                    const coach = modalEl.querySelector('.equipe-input-coach').value.trim();
+                    const contact = modalEl.querySelector('.equipe-input-contact').value.trim();
+                    const sport = modalEl.querySelector('.equipe-input-sport').value.trim();
+                    const csrf = modalEl.dataset.csrf || '';
+
+                    const url = '{{ path('app_equipe_ajax_edit', {'id': 0}) }}'.replace('0', equipeId);
+                    const params = new URLSearchParams();
+                    params.append('_token', csrf);
+                    params.append('nom', nom);
+                    params.append('coach', coach);
+                    params.append('contact', contact);
+                    params.append('sport', sport);
+
+                    fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+                        },
+                        body: params.toString()
+                    }).then(r => r.json()).then(data => {
+                        if (data && data.success) {
+                            const e = data.equipe;
+                            // update modal display
+                            modalEl.querySelector('.equipe-modal-title').textContent = e.nom;
+                            modalEl.querySelector('.equipe-modal-coach').textContent = e.coach || '—';
+                            modalEl.querySelector('.equipe-modal-contact').textContent = e.contact || '—';
+                            modalEl.querySelector('.equipe-modal-sport').textContent = e.sport || '—';
+
+                            const membersList = modalEl.querySelector('.equipe-modal-members');
+                            membersList.innerHTML = '';
+                            if (e.members && e.members.length) {
+                                e.members.forEach(function (m) { const li = document.createElement('li'); li.textContent = m; membersList.appendChild(li); });
+                            } else {
+                                const li = document.createElement('li'); li.className = 'text-muted'; li.textContent = 'Aucun membre listé'; membersList.appendChild(li);
+                            }
+
+                            // update source button in the list
+                            const sourceBtn = document.querySelector('[data-id="' + equipeId + '"]');
+                            if (sourceBtn) {
+                                sourceBtn.querySelector('.badge').textContent = e.members_count + ' membres';
+                                sourceBtn.dataset.nom = e.nom;
+                                sourceBtn.dataset.coach = e.coach || '';
+                                sourceBtn.dataset.contact = e.contact || '';
+                                sourceBtn.dataset.sport = e.sport || '';
+                                sourceBtn.dataset.members = JSON.stringify(e.members || []);
+                                // update visible name
+                                sourceBtn.childNodes[0].nodeValue = e.nom + ' ';
+                            }
+
+                            // revert edit button state
+                            editBtnGlobal.textContent = 'Éditer';
+                            editBtnGlobal.classList.remove('btn-save');
+                            editBtnGlobal.classList.add('btn-edit');
+
+                            // remove cancel button if present
+                            const cancelBtn = modalEl.querySelector('.equipe-modal-actions .btn-cancel');
+                            if (cancelBtn) cancelBtn.remove();
+
+                        } else {
+                            alert((data && data.message) ? data.message : 'Erreur lors de la sauvegarde');
+                        }
+                    }).catch(err => {
+                        console.error(err);
+                        alert('Erreur réseau lors de la sauvegarde');
+                    });
+                }
+            });
+        });
+    </script>
+
 {% endblock %}
