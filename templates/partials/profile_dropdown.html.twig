@@ -1,0 +1,175 @@
+{#
+  Reusable profile dropdown for the header.
+  Expects `user` to be available (pass `with {'user': app.user}` when including).
+#}
+<div class="dropdown">
+    <button class="btn btn-outline-primary dropdown-toggle d-flex align-items-center" type="button" id="profileDropdown" data-bs-toggle="dropdown" data-bs-boundary="viewport" data-bs-container="body" aria-expanded="false">
+        <img src="{{ asset('img/avatar-placeholder.png') }}" alt="Avatar" class="rounded-circle" width="28" height="28">
+        <span class="d-none d-md-inline ms-2">{{ user.prenom|default('Profil') }}</span>
+    </button>
+
+    <div class="dropdown-menu dropdown-menu-end p-2" aria-labelledby="profileDropdown" style="min-width: 220px; z-index: 10500 !important;"> 
+        <div class="d-flex align-items-center px-2 py-2">
+            {% if user.avatar is defined and user.avatar %}
+                <img src="{{ asset('uploads/avatars/' ~ user.avatar) }}" alt="Avatar" class="rounded-circle me-2" width="48" height="48">
+            {% else %}
+                <img src="{{ asset('img/avatar-placeholder.png') }}" alt="Avatar" class="rounded-circle me-2" width="48" height="48">
+            {% endif %}
+            <div>
+                <div class="fw-semibold">{{ (user.prenom|default('')) ~ ' ' ~ (user.nom|default('')) }}</div>
+                <small class="text-muted">{{ user.email|default('') }}</small>
+            </div>
+        </div>
+        <div class="dropdown-divider"></div>
+
+        <a class="dropdown-item d-flex align-items-center" href="{{ path('app_profile') }}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person me-2" viewBox="0 0 16 16">
+                <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+                <path fill-rule="evenodd" d="M14 14s-1-4-6-4-6 4-6 4 1 0 6 0 6 0 6 0z"/>
+            </svg>
+            Profil
+        </a>
+
+        <a class="dropdown-item d-flex align-items-center" href="{{ path('app_profile_settings') }}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-gear me-2" viewBox="0 0 16 16">
+                <path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"/>
+                <path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-.562.58l-.316.11c-1.64.57-1.64 2.756 0 3.326l.316.11c.24.085.451.285.562.58l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 .562-.58l.316-.11c1.64-.57 1.64-2.756 0-3.326l-.316-.11a.873.873 0 0 1-.562-.58l-.094-.319z"/>
+            </svg>
+            Paramètres du compte
+        </a>
+
+        <div class="dropdown-divider"></div>
+
+        <form method="post" action="{{ logout_path() }}" class="m-0">
+            <button type="submit" class="dropdown-item d-flex align-items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box-arrow-left me-2" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M10 13.5a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-11a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5v2a.5.5 0 0 1-1 0v-2A1.5 1.5 0 0 1 13.5 1h3A1.5 1.5 0 0 1 18 2.5v11A1.5 1.5 0 0 1 16.5 15h-3A1.5 1.5 0 0 1 12 13.5v-2a.5.5 0 0 1 1 0v2z"/>
+                    <path fill-rule="evenodd" d="M6.146 8.354a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L7.707 7.5H14.5a.5.5 0 0 1 0 1H7.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3z"/>
+                </svg>
+                Se déconnecter
+            </button>
+        </form>
+    </div>
+</div>
+
+{# Ensure dropdown is positioned above other elements and avoid clipping by ancestors. 
+   Re-initialize the dropdown with a Popper boundary of document.body. #}
+<script>
+    (function(){
+        if (typeof window === 'undefined') return;
+        document.addEventListener('DOMContentLoaded', function(){
+            try {
+                var toggle = document.getElementById('profileDropdown');
+                var menu = document.querySelector('.dropdown-menu[aria-labelledby="profileDropdown"]');
+                if (!toggle || !menu) return;
+
+                // store original container so we can restore it on hide
+                var originalParent = menu.parentNode;
+                var originalNext = menu.nextSibling;
+
+                var updatePosition = function(){
+                    var rect = toggle.getBoundingClientRect();
+                    // ensure menu is in the DOM (appended to body) to measure
+                    menu.style.position = 'fixed';
+                    menu.style.zIndex = '10500';
+                    menu.style.visibility = 'hidden';
+                    // temporarily append if needed
+                    if (menu.parentNode !== document.body) document.body.appendChild(menu);
+                    // force reflow
+                    var mw = menu.offsetWidth;
+                    var mh = menu.offsetHeight;
+
+                    // If menu is wider than viewport, clamp its width and enable wrapping
+                    var maxAllowedWidth = Math.max(100, window.innerWidth - 16);
+                    if (mw > maxAllowedWidth) {
+                        menu.style.width = maxAllowedWidth + 'px';
+                        mw = maxAllowedWidth;
+                    }
+
+                    // align to end (right) of toggle by default
+                    var left = Math.round(rect.left + rect.width - mw);
+                    if (left < 8) left = Math.round(rect.left);
+
+                    // compute space below and above the toggle
+                    var spaceBelow = window.innerHeight - rect.bottom;
+                    var spaceAbove = rect.top;
+                    var top;
+
+                    // prefer opening below unless not enough space
+                    if (spaceBelow >= mh + 8) {
+                        top = Math.round(rect.bottom + 4);
+                    } else if (spaceAbove >= mh + 8) {
+                        // open above
+                        top = Math.round(rect.top - mh - 4);
+                    } else {
+                        // not enough space either side: fit within viewport and allow scroll
+                        // place below if more space there, otherwise above
+                        if (spaceBelow >= spaceAbove) {
+                            top = Math.round(rect.bottom + 4);
+                            // limit height
+                            var maxH = Math.max(80, spaceBelow - 12);
+                            menu.style.maxHeight = maxH + 'px';
+                            menu.style.overflowY = 'auto';
+                        } else {
+                            // open above and limit height
+                            var maxH2 = Math.max(80, spaceAbove - 12);
+                            menu.style.maxHeight = maxH2 + 'px';
+                            menu.style.overflowY = 'auto';
+                            top = Math.round(rect.top - (menu.offsetHeight || maxH2) - 4);
+                        }
+                    }
+
+                    // ensure within viewport horizontally
+                    if (left + mw > window.innerWidth - 8) left = Math.max(8, window.innerWidth - mw - 8);
+
+                    // final clamps
+                    left = Math.max(8, left);
+                    top = Math.max(8, Math.min(top, window.innerHeight - 8 - 20));
+
+                    menu.style.left = left + 'px';
+                    menu.style.top = top + 'px';
+                    menu.style.visibility = '';
+                };
+
+                var onShow = function(){
+                    // append to body and position
+                    if (menu.parentNode !== document.body) document.body.appendChild(menu);
+                    updatePosition();
+                    window.addEventListener('resize', updatePosition);
+                    window.addEventListener('scroll', updatePosition, true);
+                };
+
+                var onHide = function(){
+                    // remove listeners
+                    window.removeEventListener('resize', updatePosition);
+                    window.removeEventListener('scroll', updatePosition, true);
+                    // restore menu to original parent to keep DOM structure
+                    try {
+                        menu.style.removeProperty('left');
+                        menu.style.removeProperty('top');
+                        menu.style.removeProperty('position');
+                        menu.style.removeProperty('z-index');
+                    } catch (e) {}
+                    if (originalParent) {
+                        if (originalNext) originalParent.insertBefore(menu, originalNext);
+                        else originalParent.appendChild(menu);
+                    }
+                };
+
+                // listen to bootstrap dropdown events
+                toggle.addEventListener('show.bs.dropdown', onShow);
+                toggle.addEventListener('hide.bs.dropdown', onHide);
+
+                // Also initialize a bootstrap Dropdown instance with container body to ensure keyboard/accessibility works
+                if (typeof bootstrap !== 'undefined' && bootstrap.Dropdown) {
+                    var existing = bootstrap.Dropdown.getInstance(toggle);
+                    if (existing) existing.dispose();
+                    new bootstrap.Dropdown(toggle, { boundary: 'viewport' });
+                }
+
+            } catch (e) {
+                console.error(e);
+            }
+        });
+    })();
+</script>

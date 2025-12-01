@@ -44,6 +44,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $licence = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $avatar = null;
+
     /**
      * @var Collection<int, Equipe>
      */
@@ -168,6 +171,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setLicence(?string $licence): static
     {
         $this->licence = $licence;
+
+        return $this;
+    }
+
+    public function getAvatar(): ?string
+    {
+        return $this->avatar;
+    }
+
+    public function setAvatar(?string $avatar): static
+    {
+        $this->avatar = $avatar;
 
         return $this;
     }
