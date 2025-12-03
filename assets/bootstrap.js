@@ -11,6 +11,23 @@ document.addEventListener('DOMContentLoaded', () => {
 		const loginTabBtn = document.getElementById('tab-login');
 		const signupTabBtn = document.getElementById('tab-signup');
 
+		async function loadRegistrationPaneIfNeeded() {
+			try {
+				const pane = document.querySelector('#pane-signup');
+				if (!pane) return;
+				// If already loaded, skip
+				if (pane.querySelector('#form-register')) return;
+				const url = loginModalEl?.dataset?.registerUrl;
+				if (!url) return;
+				const resp = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+				if (!resp.ok) return;
+				const html = await resp.text();
+				pane.innerHTML = html;
+			} catch (e) {
+				console.warn('Failed loading registration pane', e);
+			}
+		}
+
 		// Make sure tab buttons are real buttons
 		[loginTabBtn, signupTabBtn].forEach(b => b && b.setAttribute('type', 'button'));
 
@@ -31,12 +48,19 @@ document.addEventListener('DOMContentLoaded', () => {
 			btn.addEventListener('shown.bs.tab', (e) => stylePills(e.target));
 		});
 
-		// When the modal opens, ensure the active pill visual is correct
+		// When the modal opens, ensure the active pill visual is correct and prepare signup pane
 		if (loginModalEl) {
-			loginModalEl.addEventListener('shown.bs.modal', () => {
+			loginModalEl.addEventListener('shown.bs.modal', async () => {
 				const active = document.querySelector('.nav-pills .nav-link.active');
 				stylePills(active || loginTabBtn);
+				// Preload signup content in background
+				loadRegistrationPaneIfNeeded();
 			});
+		}
+
+		// Load signup content when user switches to signup tab
+		if (signupTabBtn) {
+			signupTabBtn.addEventListener('click', () => loadRegistrationPaneIfNeeded());
 		}
 
 		// Handle AJAX registration submit inside modal

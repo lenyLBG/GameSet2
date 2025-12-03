@@ -39,14 +39,25 @@
 
                 <div class="mb-3">
                     <label for="avatar" class="form-label">Photo de profil</label>
-                    {% if user.avatar is defined and user.avatar %}
-                        <div class="mb-2">
-                            <img src="{{ asset('uploads/avatars/' ~ user.avatar) }}" alt="avatar" class="rounded-circle" width="72" height="72">
-                        </div>
-                    {% endif %}
+                    <div class="mb-2">
+                        <img id="avatar-preview" src="{{ asset(user.avatar ? ('uploads/avatars/' ~ user.avatar) : 'img/avatar-placeholder.png') }}" alt="avatar" class="rounded-circle border" width="120" height="120" style="object-fit: cover;">
+                    </div>
                     <input type="file" class="form-control" id="avatar" name="avatar" accept="image/*">
                     <div class="form-text">Formats acceptés : jpg, png. Taille max recommandée : 2MB.</div>
                 </div>
+
+                <script>
+                    document.getElementById('avatar').addEventListener('change', function(e) {
+                        const file = e.target.files[0];
+                        if (file && file.type.startsWith('image/')) {
+                            const reader = new FileReader();
+                            reader.onload = function(event) {
+                                document.getElementById('avatar-preview').src = event.target.result;
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    });
+                </script>
 
                 <div class="d-flex justify-content-between align-items-center">
                     <button class="btn btn-primary" type="submit">Enregistrer</button>

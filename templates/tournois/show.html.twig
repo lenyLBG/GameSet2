@@ -60,7 +60,7 @@
                     </form>
                 {% endif %}
             {% else %}
-                <a href="#" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#loginModal">Faire une demande de participation</a>
+                <a href="#" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#modal-login">Faire une demande de participation</a>
             {% endif %}
         </div>
     </div>
@@ -174,7 +174,7 @@
                             </div>
                         </form>
                     {% else %}
-                        <p class="text-muted">Vous devez être connecté en tant que créateur pour ajouter des participants. <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal">Se connecter</a></p>
+                        <p class="text-muted">Vous devez être connecté en tant que créateur pour ajouter des participants. <a href="#" data-bs-toggle="modal" data-bs-target="#modal-login">Se connecter</a></p>
                     {% endif %}
 
                     {% if app.user and tournoi.creator is not null and (app.user == tournoi.creator or is_granted('ROLE_ADMIN')) and not tournoi.winner %}
