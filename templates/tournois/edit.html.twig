@@ -1,0 +1,67 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier Tournoi - {{ tournoi.nom }}{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card card-custom shadow-sm">
+                <div class="card-body">
+                    <h2 class="mb-3">Modifier le tournoi</h2>
+                    <form method="post" action="{{ path('app_tournoi_edit', {'id': tournoi.id}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('edit' ~ tournoi.id) }}">
+
+                        <div class="mb-3">
+                            <label for="nom" class="form-label">Nom</label>
+                            <input type="text" id="nom" name="nom" class="form-control" value="{{ tournoi.nom }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="sport" class="form-label">Sport</label>
+                            <select id="sport" name="sport" class="form-select">
+                                <option value="" {% if not tournoi.sport %}selected{% endif %}>Choisir un Sport</option>
+                                <option value="Football" {% if tournoi.sport == 'Football' %}selected{% endif %}>Football</option>
+                                <option value="Basketball" {% if tournoi.sport == 'Basketball' %}selected{% endif %}>Basketball</option>
+                                <option value="Tennis" {% if tournoi.sport == 'Tennis' %}selected{% endif %}>Tennis</option>
+                                <option value="Baseball" {% if tournoi.sport == 'Baseball' %}selected{% endif %}>Baseball</option>
+                                <option value="Badminton" {% if tournoi.sport == 'Badminton' %}selected{% endif %}>Badminton</option>
+                                <option value="Echecs" {% if tournoi.sport == 'Echecs' %}selected{% endif %}>Echecs</option>
+                                <option value="FIFA" {% if tournoi.sport == 'FIFA' %}selected{% endif %}>FIFA</option>
+                                <option value="Billard" {% if tournoi.sport == 'Billard' %}selected{% endif %}>Billard</option>
+                                <option value="Autre" {% if tournoi.sport == 'Autre' %}selected{% endif %}>Autre</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="format" class="form-label">Format</label>
+                            <select id="format" name="format" class="form-select">
+                                <option value="" {% if not tournoi.format %}selected{% endif %}>Choisir un format</option>
+                                <option value="elimination_simple" {% if tournoi.format == 'elimination_simple' %}selected{% endif %}>Élimination simple</option>
+                                <option value="double_elimination" {% if tournoi.format == 'double_elimination' %}selected{% endif %}>Double élimination</option>
+                                <option value="round_robin" {% if tournoi.format == 'round_robin' %}selected{% endif %}>Round robin</option>
+                                <option value="libre" {% if tournoi.format == 'libre' %}selected{% endif %}>Libre</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="date_debut" class="form-label">Date de début</label>
+                            <input type="date" id="date_debut" name="date_debut" class="form-control" value="{{ tournoi.dateDebut ? tournoi.dateDebut|date('Y-m-d') : '' }}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="date_fin" class="form-label">Date de fin</label>
+                            <input type="date" id="date_fin" name="date_fin" class="form-control" value="{{ tournoi.dateFin ? tournoi.dateFin|date('Y-m-d') : '' }}">
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-primary">Enregistrer</button>
+                            <a href="{{ path('app_tournoi_show', {'id': tournoi.id}) }}" class="btn btn-secondary">Annuler</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

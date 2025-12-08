@@ -1,3 +1,14 @@
-body {
-    background-color: skyblue;
+
+/* Footer custom styles */
+.footer-links li a {
+	text-decoration: none !important;
+	transition: color 0.2s;
+}
+.footer-links li a:hover {
+	color: #ffc107 !important;
+}
+
+footer {
+	border-radius: 12px 12px 0 0;
+	box-shadow: 0 -2px 16px rgba(0,0,0,0.12);
 }

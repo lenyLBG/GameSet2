@@ -1,0 +1,826 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Détails Tournoi - {{ tournoi.nom }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/tournois.css') }}">
+{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card card-custom shadow-sm">
+                <div class="card-body">
+                    <h2 class="card-title mb-3">{{ tournoi.nom }}</h2>
+                    <p class="mb-2"><strong>Sport:</strong> <span class="text-muted">{{ tournoi.sport }}</span></p>
+                    <p class="mb-2"><strong>Format:</strong> <span class="text-muted">{{ tournoi.format ?: 'N/A' }}</span></p>
+                    <p class="mb-2"><strong>Période:</strong> <span class="text-muted">{{ tournoi.dateDebut ? tournoi.dateDebut|date('d/m/Y') : 'N/A' }} — {{ tournoi.dateFin ? tournoi.dateFin|date('d/m/Y') : 'N/A' }}</span></p>
+                    {% if tournoi.winner %}
+                        <div class="alert alert-success mt-3 mb-0">
+                            <strong>🏆 Gagnant:</strong> {{ tournoi.winner.nom }}
+                            {% if app.user and tournoi.creator is not null and (app.user == tournoi.creator or is_granted('ROLE_ADMIN')) %}
+                                <form method="post" action="{{ path('app_tournoi_reset_winner', {'id': tournoi.id}) }}" style="display: inline;">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('reset_winner_' ~ tournoi.id) }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger ms-2">Réinitialiser</button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                    <p class="mb-0"><small class="text-muted">ID: {{ tournoi.id }}</small></p>
+                </div>
+                <div class="card-footer bg-transparent d-flex justify-content-between">
+                    <div>
+                        <a href="{{ path('app_tournois') }}" class="btn btn-secondary">Retour à la liste</a>
+                    </div>
+                    <div class="d-flex gap-2">
+                        {% if app.user and tournoi.creator is not null and (app.user == tournoi.creator or is_granted('ROLE_ADMIN')) %}
+                            <a href="{{ path('app_tournoi_edit', {'id': tournoi.id}) }}" class="btn btn-primary">Modifier</a>
+                            <form method="post" action="{{ path('app_tournoi_delete', {'id': tournoi.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce tournoi ?');">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ tournoi.id) }}">
+                                <button class="btn btn-danger">Supprimer</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row justify-content-center mt-3">
+        <div class="col-md-8 d-flex justify-content-end">
+            {% if app.user %}
+                {% if app.user == tournoi.creator or is_granted('ROLE_ADMIN') %}
+                    <button class="btn btn-outline-secondary" disabled>Vous êtes autorisé</button>
+                {% else %}
+                    <form method="post" action="{{ path('app_tournoi_request_participation', {'id': tournoi.id}) }}" class="m-0 d-flex gap-2">
+                        <input type="hidden" name="_token" value="{{ csrf_token('request_participation_' ~ tournoi.id) }}">
+                        <input type="text" name="message" class="form-control form-control-sm" placeholder="Message facultatif" style="max-width:360px">
+                        <button class="btn btn-warning">Faire une demande de participation</button>
+                    </form>
+                {% endif %}
+            {% else %}
+                <a href="#" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#loginModal">Faire une demande de participation</a>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if participation_requests is defined and participation_requests is not empty and app.user and (app.user == tournoi.creator or is_granted('ROLE_ADMIN')) %}
+    <div class="row justify-content-center mt-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <h5>Demandes de participation</h5>
+                    <ul class="list-group">
+                        {% for req in participation_requests %}
+                            <li class="list-group-item d-flex justify-content-between align-items-start">
+                                <div>
+                                    <strong>{{ req.user.nom }} {{ req.user.prenom }}</strong>
+                                    <div class="text-muted small">Envoyé le {{ req.createdAt|date('d/m/Y H:i') }}</div>
+                                    {% if req.message %}
+                                        <div class="mt-2">{{ req.message }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <form method="post" action="{{ path('app_participation_request_decide', {'id': req.id}) }}">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('decide_part_' ~ req.id) }}">
+                                        <input type="hidden" name="action" value="accept">
+                                        <button class="btn btn-sm btn-success">Accepter</button>
+                                    </form>
+                                    <form method="post" action="{{ path('app_participation_request_decide', {'id': req.id}) }}">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('decide_part_' ~ req.id) }}">
+                                        <input type="hidden" name="action" value="reject">
+                                        <button class="btn btn-sm btn-outline-danger">Refuser</button>
+                                    </form>
+                                </div>
+                            </li>
+                        {% else %}
+                            <li class="list-group-item">Aucune demande en attente.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    <div class="row justify-content-center mt-4">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h3 class="mb-3">Participants</h3>
+                    {% if tournoi.equipes is empty %}
+                        <p class="text-muted">Aucun participant pour le moment.</p>
+                    {% else %}
+                        <ul class="list-group mb-3">
+                            {% for equipe in tournoi.equipes %}
+                                <li class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div>
+                                            <strong>{{ equipe.nom }}</strong>
+                                            {% if equipe.coach %}<div class="text-muted small">Coach: {{ equipe.coach }}</div>{% endif %}
+                                        </div>
+                                        <div>
+                                            {% if app.user and tournoi.creator is not null and (app.user == tournoi.creator or is_granted('ROLE_ADMIN')) %}
+                                                <div class="d-flex gap-2">
+                                                    <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editParticipantModal" data-equipe-id="{{ equipe.id }}" data-equipe-nom="{{ equipe.nom }}" data-equipe-coach="{{ equipe.coach ?: '' }}" data-equipe-contact="{{ equipe.contact ?: '' }}">Modifier</button>
+                                                    <form method="post" action="{{ path('app_tournoi_remove_participant', {'id': tournoi.id, 'equipeId': equipe.id}) }}" onsubmit="return confirm('Retirer cet participant ?');" class="m-0">
+                                                        <input type="hidden" name="_token" value="{{ csrf_token('remove_participant_' ~ tournoi.id ~ '_' ~ equipe.id) }}">
+                                                        <button class="btn btn-sm btn-outline-danger">Retirer</button>
+                                                    </form>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    {% if equipe.users is not empty or (equipe.manualParticipants is defined and equipe.manualParticipants|length > 0) %}
+                                        <div class="small text-muted mt-2">
+                                            <strong>Joueurs:</strong> 
+                                            {% for user in equipe.users %}
+                                                <span class="badge bg-light text-dark">{{ user.prenom }} {{ user.nom }}</span>
+                                            {% endfor %}
+                                            {% if equipe.manualParticipants is defined %}
+                                                {% for participant in equipe.manualParticipants %}
+                                                    <span class="badge bg-info text-white">{{ participant }}</span>
+                                                {% endfor %}
+                                            {% endif %}
+                                            {% if app.user and tournoi.creator is not null and (app.user == tournoi.creator or is_granted('ROLE_ADMIN')) %}
+                                                <button type="button" class="btn btn-xs btn-link p-0 ms-2" data-bs-toggle="modal" data-bs-target="#addPlayersModal" data-equipe-id="{{ equipe.id }}" data-equipe-nom="{{ equipe.nom }}">Ajouter</button>
+                                            {% endif %}
+                                        </div>
+                                    {% else %}
+                                        <div class="small text-muted mt-2">
+                                            <em>Aucun joueur assigné</em>
+                                            {% if app.user and tournoi.creator is not null and (app.user == tournoi.creator or is_granted('ROLE_ADMIN')) %}
+                                                <button type="button" class="btn btn-xs btn-link p-0 ms-2" data-bs-toggle="modal" data-bs-target="#addPlayersModal" data-equipe-id="{{ equipe.id }}" data-equipe-nom="{{ equipe.nom }}">Ajouter des joueurs</button>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+
+                    {% if app.user and tournoi.creator is not null and (app.user == tournoi.creator or is_granted('ROLE_ADMIN')) %}
+                        <h5>Ajouter un participant</h5>
+                        <form method="post" action="{{ path('app_tournoi_add_participant', {'id': tournoi.id}) }}" class="row g-2">
+                            <input type="hidden" name="_token" value="{{ csrf_token('add_participant_' ~ tournoi.id) }}">
+                            <div class="col-md-6">
+                                <input type="text" name="nom" class="form-control" placeholder="Nom de l'équipe" required>
+                            </div>
+                            <div class="col-md-3">
+                                <input type="text" name="coach" class="form-control" placeholder="Coach (optionnel)">
+                            </div>
+                            <div class="col-md-3 d-flex">
+                                <button class="btn btn-success w-100">Ajouter</button>
+                            </div>
+                        </form>
+                    {% else %}
+                        <p class="text-muted">Vous devez être connecté en tant que créateur pour ajouter des participants. <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal">Se connecter</a></p>
+                    {% endif %}
+
+                    {% if app.user and tournoi.creator is not null and (app.user == tournoi.creator or is_granted('ROLE_ADMIN')) and not tournoi.winner %}
+                        <hr class="my-4">
+                        <h5>Désigner le gagnant</h5>
+                        {% if tournoi.equipes|length > 0 %}
+                            <p class="text-muted small mb-3">Sélectionnez l'équipe gagnante du tournoi.</p>
+                            <div class="list-group">
+                                {% for equipe in tournoi.equipes %}
+                                    <form method="post" action="{{ path('app_tournoi_set_winner', {'id': tournoi.id, 'equipeId': equipe.id}) }}" style="display: inline;">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('set_winner_' ~ tournoi.id) }}">
+                                        <button type="submit" class="list-group-item list-group-item-action btn btn-link text-start">
+                                            <div>
+                                                <strong>{{ equipe.nom }}</strong>
+                                                {% if equipe.users|length > 0 or equipe.manualParticipants|length > 0 %}
+                                                    <br>
+                                                    <small class="text-muted">
+                                                        {% set allParticipants = equipe.users|map(a => a.prenom ~ ' ' ~ a.nom)|merge(equipe.manualParticipants)|join(', ') %}
+                                                        {{ allParticipants }}
+                                                    </small>
+                                                {% endif %}
+                                            </div>
+                                        </button>
+                                    </form>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted">Aucune équipe dans ce tournoi.</p>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+            {% if bracket is defined and bracket %}
+            <div class="row justify-content-center mt-4">
+                <div class="col-md-12">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <div>
+                                    <h3 class="mb-0">Tableau / Planning</h3>
+                                    <small class="text-muted">Format: <strong>{{ tournoi.format|default('Libre') }}</strong></small>
+                                </div>
+                                {% set isPersisted = false %}
+                                {% if bracket is defined and bracket is not empty %}
+                                    {% if bracket.rounds is defined and bracket.rounds|length > 0 %}
+                                        {% if bracket.rounds[0].matches is defined and bracket.rounds[0].matches|first.id is defined %}
+                                            {% set isPersisted = true %}
+                                        {% endif %}
+                                    {% elseif bracket.winners is defined and bracket.winners|length > 0 %}
+                                        {% if bracket.winners[0].matches is defined and bracket.winners[0].matches|first.id is defined %}
+                                            {% set isPersisted = true %}
+                                        {% endif %}
+                                    {% endif %}
+                                {% endif %}
+
+                                {# if not persisted, allow creator/admin to persist the generated bracket #}
+                                {% if not isPersisted and app.user and tournoi.creator is not null and (app.user == tournoi.creator or is_granted('ROLE_ADMIN')) %}
+                                    <form method="post" action="{{ path('app_tournoi_generate_bracket', {'id': tournoi.id}) }}" class="m-0">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('generate_bracket_' ~ tournoi.id) }}">
+                                        <button class="btn btn-outline-primary btn-sm">Générer et sauvegarder</button>
+                                    </form>
+                                {% endif %}
+                            </div>
+
+                            {% macro winner_form(m, tournoi) %}
+                                {% if m.id is defined and m.a_id is defined and m.b_id is defined and m.a_id and m.b_id %}
+                                    <div class="d-flex gap-1 mt-2 align-items-center" style="font-size: 0.85rem;">
+                                        <form method="post" action="#" onsubmit="this.action = this.querySelector('select').value; return true;" class="flex-grow-1">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('set_match_winner_' ~ m.id) }}">
+                                            <input type="hidden" name="tournoi_id" value="{{ tournoi.id }}">
+                                            <div class="input-group input-group-sm">
+                                                <select class="form-select" name="winner_url">
+                                                    <option value="{{ path('app_rencontre_set_winner', {'id': m.id, 'equipeId': m.a_id}) }}" {% if m.winner_id is defined and m.winner_id == m.a_id %}selected{% endif %}>{{ m.a_team }}</option>
+                                                    <option value="{{ path('app_rencontre_set_winner', {'id': m.id, 'equipeId': m.b_id}) }}" {% if m.winner_id is defined and m.winner_id == m.b_id %}selected{% endif %}>{{ m.b_team }}</option>
+                                                </select>
+                                                <button class="btn btn-outline-success" type="submit">OK</button>
+                                            </div>
+                                        </form>
+                                        {% if m.winner_id is defined and m.winner_id %}
+                                        <form method="post" action="{{ path('app_rencontre_reset_winner', {'id': m.id}) }}" style="display: inline;">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('reset_match_winner_' ~ m.id) }}">
+                                            <input type="hidden" name="tournoi_id" value="{{ tournoi.id }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger py-1" title="Réinitialiser le gagnant">&times;</button>
+                                        </form>
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                            {% endmacro %}
+
+                            <!-- SINGLE ELIMINATION FORMAT -->
+                            {% if bracket.type == 'single_elimination' %}
+                                <div class="bracket-section">
+                                    {% if bracket.rounds is not defined or bracket.rounds|length == 0 %}
+                                        <p class="text-muted text-center py-4">Aucun match programmé pour le moment.</p>
+                                    {% else %}
+                                        {% for round in bracket.rounds %}
+                                            {% if round is iterable and round.matches is defined and round.matches|length > 0 %}
+                                            <div class="bracket-round mb-4">
+                                                <h5 class="round-title bg-light p-2 rounded mb-3">
+                                                    {% if round.round == 1 %}Tour 1 - Premiers matchs{% elseif round.round == bracket.rounds|length %}Finale{% else %}Tour {{ round.round }}{% endif %}
+                                                </h5>
+                                                <div class="matches-grid" style="display: grid; gap: 12px;">
+                                                    {% for m in round.matches %}
+                                                        <div class="match-card p-3 border rounded" style="background: #f8f9fa; border-left: 4px solid {% if m.status is defined and m.status == 'completed' %}#28a745{% else %}#0d6efd{% endif %};">
+                                                            <div class="d-flex justify-content-between align-items-start gap-2">
+                                                                <div class="flex-grow-1">
+                                                                    <div class="match-teams mb-2">
+                                                                        <div class="team-item py-1 px-2 rounded mb-2 {% if m.winner_id is defined and m.winner_id == m.a_id %}bg-success text-white{% endif %}" style="background: white; border: 1px solid #dee2e6;">
+                                                                            <span class="fw-semibold">{{ (m.a) ?: '&mdash;' }}</span>
+                                                                        </div>
+                                                                        <div class="match-vs text-center text-muted small fw-bold">vs</div>
+                                                                        <div class="team-item py-1 px-2 rounded mt-2 {% if m.winner_id is defined and m.winner_id == m.b_id %}bg-success text-white{% endif %}" style="background: white; border: 1px solid #dee2e6;">
+                                                                            <span class="fw-semibold">{{ (m.b) ?: '&mdash;' }}</span>
+                                                                        </div>
+                                                                    </div>
+                                                                    {% if m.status is defined and m.status == 'completed' %}
+                                                                        <div class="match-score text-center py-2 px-2 rounded" style="background: #e7f3ff; border: 1px solid #b3d9ff;">
+                                                                            <span class="badge bg-success">Joué</span>
+                                                                            <strong class="ms-2">{{ m.score_a }} - {{ m.score_b }}</strong>
+                                                                        </div>
+                                                                    {% endif %}
+                                                                    {% if app.user and tournoi.creator is not null and (app.user == tournoi.creator or is_granted('ROLE_ADMIN')) and m.a_id is defined and m.b_id is defined and m.a_id and m.b_id %}
+                                                                        {{ _self.winner_form(m, tournoi) }}
+                                                                    {% elseif not (app.user and tournoi.creator is not null and (app.user == tournoi.creator or is_granted('ROLE_ADMIN'))) %}
+                                                                        <div class="text-center text-muted small py-2">En attente</div>
+                                                                    {% endif %}
+                                                                </div>
+                                                                {% if app.user and tournoi.creator is not null and (app.user == tournoi.creator or is_granted('ROLE_ADMIN')) %}
+                                                                    <div class="flex-shrink-0">
+                                                                        {% if m.id is defined %}
+                                                                        <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#scoreModal" data-match-id="{{ m.id }}" data-team-a="{{ (m.a) ?: 'TBD' }}" data-team-b="{{ (m.b) ?: 'TBD' }}" data-score-a="{{ m.score_a ?: '' }}" data-score-b="{{ m.score_b ?: '' }}">
+                                                                            Saisir
+                                                                        </button>
+                                                                        {% endif %}
+                                                                    </div>
+                                                                {% endif %}
+                                                            </div>
+                                                        </div>
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                            <!-- ROUND ROBIN FORMAT -->
+                            {% elseif bracket.type == 'round_robin' %}
+                                <div class="bracket-section">
+                                    {% if bracket.rounds is not defined or bracket.rounds|length == 0 %}
+                                        <p class="text-muted text-center py-4">Aucun match programmé pour le moment.</p>
+                                    {% else %}
+                                        {% for round in bracket.rounds %}
+                                            {% if round is iterable and round.matches is defined and round.matches|length > 0 %}
+                                            <div class="bracket-round mb-5">
+                                                <h5 class="round-title bg-light p-2 rounded mb-3">Manche {{ round.round }}</h5>
+                                                <div class="table-responsive">
+                                                    <table class="table table-hover table-sm mb-0">
+                                                        <thead>
+                                                            <tr style="background: #f8f9fa;">
+                                                                <th style="width: 30%;">Équipe 1</th>
+                                                                <th style="width: 15%; text-align: center;">Score</th>
+                                                                <th style="width: 30%;">Équipe 2</th>
+                                                                <th style="width: 25%; text-align: center;">Gagnant</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {% for m in round.matches %}
+                                                                <tr style="background: {% if m.status is defined and m.status == 'completed' %}#f0f8f5{% else %}white{% endif %};">
+                                                                    <td class="{% if m.winner_id is defined and m.winner_id == m.a_id %}table-success{% endif %}"><strong>{{ (m.a) ?: '&mdash;' }}</strong></td>
+                                                                    <td style="text-align: center;">
+                                                                        {% if m.status is defined and m.status == 'completed' %}
+                                                                            <span class="badge bg-success">{{ m.score_a }} - {{ m.score_b }}</span>
+                                                                        {% else %}
+                                                                            <span class="text-muted">—</span>
+                                                                        {% endif %}
+                                                                    </td>
+                                                                    <td class="{% if m.winner_id is defined and m.winner_id == m.b_id %}table-success{% endif %}"><strong>{{ (m.b) ?: '&mdash;' }}</strong></td>
+                                                                    <td style="text-align: center;">
+                                                                        {% if m.status is defined and m.status == 'completed' %}
+                                                                            {% if app.user and tournoi.creator is not null and (app.user == tournoi.creator or is_granted('ROLE_ADMIN')) and m.a_id is defined and m.b_id is defined and m.a_id and m.b_id %}
+                                                                                {{ _self.winner_form(m, tournoi) }}
+                                                                            {% elseif m.winner_id is defined and m.winner_id %}
+                                                                                {{ m.winner_id == m.a_id ? m.a_team : m.b_team }}
+                                                                            {% endif %}
+                                                                        {% elseif app.user and tournoi.creator is not null and (app.user == tournoi.creator or is_granted('ROLE_ADMIN')) and m.a_id is defined and m.b_id is defined and m.a_id and m.b_id %}
+                                                                            {{ _self.winner_form(m, tournoi) }}
+                                                                        {% else %}
+                                                                            <span class="badge bg-warning text-dark">En attente</span>
+                                                                        {% endif %}
+                                                                        {% if app.user and tournoi.creator is not null and (app.user == tournoi.creator or is_granted('ROLE_ADMIN')) %}
+                                                                            {% if m.id is defined %}
+                                                                            <button type="button" class="btn btn-xs btn-link p-0 ms-2" data-bs-toggle="modal" data-bs-target="#scoreModal" data-match-id="{{ m.id }}" data-team-a="{{ (m.a) ?: 'TBD' }}" data-team-b="{{ (m.b) ?: 'TBD' }}" data-score-a="{{ m.score_a ?: '' }}" data-score-b="{{ m.score_b ?: '' }}">
+                                                                                <small>Modifier</small>
+                                                                            </button>
+                                                                            {% endif %}
+                                                                        {% endif %}
+                                                                    </td>
+                                                                </tr>
+                                                            {% endfor %}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                            <!-- DOUBLE ELIMINATION FORMAT -->
+                            {% elseif bracket.type == 'double_elimination' %}
+                                <div class="bracket-section">
+                                    {% set winnersRounds = bracket.winners.rounds is defined ? bracket.winners.rounds : (bracket.winners is iterable and bracket.winners|length > 0 ? bracket.winners : []) %}
+                                    {% set losersRounds = bracket.losers.rounds is defined ? bracket.losers.rounds : (bracket.losers is iterable and bracket.losers|length > 0 ? bracket.losers : []) %}
+                                    {% if winnersRounds|length == 0 and losersRounds|length == 0 %}
+                                        <p class="text-muted text-center py-4">Aucun match programmé pour le moment.</p>
+                                    {% else %}
+                                        <!-- WINNERS BRACKET -->
+                                        <div class="mb-5">
+                                            <h4 class="mb-3 pb-2 border-bottom">
+                                                <span class="badge bg-success me-2">Arbre des gagnants</span>
+                                            </h4>
+                                            {% if winnersRounds|length == 0 %}
+                                                <p class="text-muted">Aucun match dans l'arbre des gagnants.</p>
+                                            {% else %}
+                                                {% for round in winnersRounds %}
+                                                    {% if round is iterable and round.matches is defined and round.matches|length > 0 %}
+                                                    <div class="bracket-round mb-4">
+                                                        <h6 class="round-title bg-light p-2 rounded mb-3">Tour {{ round.round }}</h6>
+                                                        <div class="matches-grid" style="display: grid; gap: 12px;">
+                                                            {% for m in round.matches %}
+                                                                <div class="match-card p-3 border rounded" style="background: #f0f8f5; border-left: 4px solid #28a745;">
+                                                                    <div class="d-flex justify-content-between align-items-start gap-2">
+                                                                        <div class="flex-grow-1">
+                                                                            <div class="match-teams mb-2">
+                                                                                <div class="team-item py-1 px-2 rounded mb-2 {% if m.winner_id is defined and m.winner_id == m.a_id %}bg-success text-white{% endif %}" style="background: white; border: 1px solid #dee2e6;">
+                                                                                    <span class="fw-semibold">{{ (m.a) ?: '&mdash;' }}</span>
+                                                                                </div>
+                                                                                <div class="match-vs text-center text-muted small fw-bold">vs</div>
+                                                                                <div class="team-item py-1 px-2 rounded mt-2 {% if m.winner_id is defined and m.winner_id == m.b_id %}bg-success text-white{% endif %}" style="background: white; border: 1px solid #dee2e6;">
+                                                                                    <span class="fw-semibold">{{ (m.b) ?: '&mdash;' }}</span>
+                                                                                </div>
+                                                                            </div>
+                                                                            {% if m.status is defined and m.status == 'completed' %}
+                                                                                <div class="match-score text-center py-2 px-2 rounded" style="background: #c8e6c9;">
+                                                                                    <strong>{{ m.score_a }} - {{ m.score_b }}</strong>
+                                                                                </div>
+                                                                            {% endif %}
+                                                                            {% if app.user and tournoi.creator is not null and (app.user == tournoi.creator or is_granted('ROLE_ADMIN')) and m.a_id is defined and m.b_id is defined and m.a_id and m.b_id %}
+                                                                                {{ _self.winner_form(m, tournoi) }}
+                                                                            {% elseif not (app.user and tournoi.creator is not null and (app.user == tournoi.creator or is_granted('ROLE_ADMIN'))) %}
+                                                                                <div class="text-center text-muted small py-2">En attente</div>
+                                                                            {% endif %}
+                                                                        </div>
+                                                                        {% if app.user and tournoi.creator is not null and (app.user == tournoi.creator or is_granted('ROLE_ADMIN')) %}
+                                                                            <div class="flex-shrink-0">
+                                                                                {% if m.id is defined %}
+                                                                                <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#scoreModal" data-match-id="{{ m.id }}" data-team-a="{{ (m.a) ?: 'TBD' }}" data-team-b="{{ (m.b) ?: 'TBD' }}" data-score-a="{{ m.score_a ?: '' }}" data-score-b="{{ m.score_b ?: '' }}">
+                                                                                    Saisir
+                                                                                </button>
+                                                                                {% endif %}
+                                                                            </div>
+                                                                        {% endif %}
+                                                                    </div>
+                                                                </div>
+                                                            {% endfor %}
+                                                        </div>
+                                                    </div>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            {% endif %}
+                                        </div>
+
+                                        <!-- LOSERS BRACKET -->
+                                        <div class="mb-3">
+                                            <h4 class="mb-3 pb-2 border-bottom">
+                                                <span class="badge bg-danger me-2">Arbre des perdants</span>
+                                            </h4>
+                                            {% if losersRounds|length == 0 %}
+                                                <p class="text-muted">Aucun match dans l'arbre des perdants.</p>
+                                            {% else %}
+                                                {% for round in losersRounds %}
+                                                    {% if round is iterable and round.matches is defined and round.matches|length > 0 %}
+                                                    <div class="bracket-round mb-4">
+                                                        <h6 class="round-title bg-light p-2 rounded mb-3">Tour {{ round.round }}</h6>
+                                                        <div class="matches-grid" style="display: grid; gap: 12px;">
+                                                            {% for m in round.matches %}
+                                                                <div class="match-card p-3 border rounded" style="background: #ffe8e8; border-left: 4px solid #dc3545;">
+                                                                    <div class="d-flex justify-content-between align-items-start gap-2">
+                                                                        <div class="flex-grow-1">
+                                                                            <div class="match-teams mb-2">
+                                                                                <div class="team-item py-1 px-2 rounded mb-2 {% if m.winner_id is defined and m.winner_id == m.a_id %}bg-success text-white{% endif %}" style="background: white; border: 1px solid #dee2e6;">
+                                                                                    <span class="fw-semibold">{{ (m.a) ?: '&mdash;' }}</span>
+                                                                                </div>
+                                                                                <div class="match-vs text-center text-muted small fw-bold">vs</div>
+                                                                                <div class="team-item py-1 px-2 rounded mt-2 {% if m.winner_id is defined and m.winner_id == m.b_id %}bg-success text-white{% endif %}" style="background: white; border: 1px solid #dee2e6;">
+                                                                                    <span class="fw-semibold">{{ (m.b) ?: '&mdash;' }}</span>
+                                                                                </div>
+                                                                            </div>
+                                                                            {% if m.status is defined and m.status == 'completed' %}
+                                                                                <div class="match-score text-center py-2 px-2 rounded" style="background: #ffcdd2;">
+                                                                                    <strong>{{ m.score_a }} - {{ m.score_b }}</strong>
+                                                                                </div>
+                                                                                {% if app.user and tournoi.creator is not null and (app.user == tournoi.creator or is_granted('ROLE_ADMIN')) %}
+                                                                                    {{ _self.winner_form(m, tournoi) }}
+                                                                                {% endif %}
+                                                                            {% else %}
+                                                                                {% if app.user and tournoi.creator is not null and (app.user == tournoi.creator or is_granted('ROLE_ADMIN')) and m.a_id is defined and m.b_id is defined and m.a_id and m.b_id %}
+                                                                                    {{ _self.winner_form(m, tournoi) }}
+                                                                                {% else %}
+                                                                                    <div class="text-center text-muted small py-2">En attente</div>
+                                                                                {% endif %}
+                                                                            {% endif %}
+                                                                        </div>
+                                                                        {% if app.user and tournoi.creator is not null and (app.user == tournoi.creator or is_granted('ROLE_ADMIN')) %}
+                                                                            <div class="flex-shrink-0">
+                                                                                {% if m.id is defined %}
+                                                                                <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#scoreModal" data-match-id="{{ m.id }}" data-team-a="{{ (m.a) ?: 'TBD' }}" data-team-b="{{ (m.b) ?: 'TBD' }}" data-score-a="{{ m.score_a ?: '' }}" data-score-b="{{ m.score_b ?: '' }}">
+                                                                                    Saisir
+                                                                                </button>
+                                                                                {% endif %}
+                                                                            </div>
+                                                                        {% endif %}
+                                                                    </div>
+                                                                </div>
+                                                            {% endfor %}
+                                                        </div>
+                                                    </div>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                            <!-- FREE FORMAT (LIBRE) -->
+                            {% else %}
+                                <div class="bracket-section">
+                                    <div class="alert alert-info mb-3">
+                                        <strong>Format libre</strong> - Aucune structure de tableau prédéfinie. Tous les matchs sont affichés ci-dessous.
+                                    </div>
+                                    {% if bracket.rounds is defined and bracket.rounds is iterable and bracket.rounds|length > 0 %}
+                                        {% for round in bracket.rounds %}
+                                            {% if round is iterable and round.matches is defined and round.matches|length > 0 %}
+                                            <div class="bracket-round mb-4">
+                                                <h5 class="round-title bg-light p-2 rounded mb-3">Manche {{ round.round }}</h5>
+                                                <div class="matches-grid" style="display: grid; gap: 12px;">
+                                                    {% for m in round.matches %}
+                                                        <div class="match-card p-3 border rounded" style="background: #f8f9fa;">
+                                                            <div class="d-flex justify-content-between align-items-start gap-2">
+                                                                <div class="flex-grow-1">
+                                                                    <div class="match-teams mb-2">
+                                                                        <div class="team-item py-1 px-2 rounded mb-2 {% if m.winner_id is defined and m.winner_id == m.a_id %}bg-success text-white{% endif %}" style="background: white; border: 1px solid #dee2e6;">
+                                                                            <span class="fw-semibold">{{ (m.a) ?: '&mdash;' }}</span>
+                                                                        </div>
+                                                                        <div class="match-vs text-center text-muted small fw-bold">vs</div>
+                                                                        <div class="team-item py-1 px-2 rounded mt-2 {% if m.winner_id is defined and m.winner_id == m.b_id %}bg-success text-white{% endif %}" style="background: white; border: 1px solid #dee2e6;">
+                                                                            <span class="fw-semibold">{{ (m.b) ?: '&mdash;' }}</span>
+                                                                        </div>
+                                                                    </div>
+                                                                    {% if m.status is defined and m.status == 'completed' %}
+                                                                        <div class="match-score text-center py-2 px-2 rounded" style="background: #e7f3ff; border: 1px solid #b3d9ff;">
+                                                                            <strong>{{ m.score_a }} - {{ m.score_b }}</strong>
+                                                                        </div>
+                                                                        {% if app.user and tournoi.creator is not null and (app.user == tournoi.creator or is_granted('ROLE_ADMIN')) %}
+                                                                            {{ _self.winner_form(m, tournoi) }}
+                                                                        {% endif %}
+                                                                    {% else %}
+                                                                        {% if app.user and tournoi.creator is not null and (app.user == tournoi.creator or is_granted('ROLE_ADMIN')) and m.a_id is defined and m.b_id is defined and m.a_id and m.b_id %}
+                                                                            {{ _self.winner_form(m, tournoi) }}
+                                                                        {% else %}
+                                                                            <div class="text-center text-muted small py-2">En attente</div>
+                                                                        {% endif %}
+                                                                    {% endif %}
+                                                                </div>
+                                                                {% if app.user and tournoi.creator is not null and (app.user == tournoi.creator or is_granted('ROLE_ADMIN')) %}
+                                                                    <div class="flex-shrink-0">
+                                                                        {% if m.id is defined %}
+                                                                        <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#scoreModal" data-match-id="{{ m.id }}" data-team-a="{{ (m.a) ?: 'TBD' }}" data-team-b="{{ (m.b) ?: 'TBD' }}" data-score-a="{{ m.score_a ?: '' }}" data-score-b="{{ m.score_b ?: '' }}">
+                                                                            Saisir score
+                                                                        </button>
+                                                                        {% endif %}
+                                                                    </div>
+                                                                {% endif %}
+                                                            </div>
+                                                        </div>
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% else %}
+                                        <p class="text-muted text-center py-4">Aucun match programmé pour le moment.</p>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Score Modal (Universal for all formats) -->
+            <div class="modal fade" id="scoreModal" tabindex="-1" aria-labelledby="scoreModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="scoreModalLabel">Saisir le score</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div id="matchTeamsDisplay" class="mb-3 p-3 rounded" style="background: #f8f9fa;">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span id="teamADisplay" class="fw-semibold"></span>
+                                    <span class="text-muted">vs</span>
+                                    <span id="teamBDisplay" class="fw-semibold"></span>
+                                </div>
+                            </div>
+                            <form id="scoreForm" method="post">
+                                <input type="hidden" id="matchIdField" name="match_id">
+                                <input type="hidden" id="csrfToken" name="_token">
+                                <div class="row g-2 mb-3">
+                                    <div class="col">
+                                        <label for="scoreAInput" class="form-label small">Score 1</label>
+                                        <input type="number" id="scoreAInput" name="score_a" class="form-control form-control-lg" min="0" placeholder="0">
+                                    </div>
+                                    <div class="col-auto d-flex align-items-end">
+                                        <span class="fw-bold mb-2">—</span>
+                                    </div>
+                                    <div class="col">
+                                        <label for="scoreBInput" class="form-label small">Score 2</label>
+                                        <input type="number" id="scoreBInput" name="score_b" class="form-control form-control-lg" min="0" placeholder="0">
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                    <button type="submit" class="btn btn-primary">Enregistrer</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const scoreForm = document.getElementById('scoreForm');
+                    const scoreModal = document.getElementById('scoreModal');
+                    const tournoisId = {{ tournoi.id }};
+
+                    // Handle modal opening
+                    scoreModal.addEventListener('show.bs.modal', function(e) {
+                        const button = e.relatedTarget;
+                        document.getElementById('matchIdField').value = button.dataset.matchId;
+                        document.getElementById('teamADisplay').textContent = button.dataset.teamA;
+                        document.getElementById('teamBDisplay').textContent = button.dataset.teamB;
+                        document.getElementById('scoreAInput').value = button.dataset.scoreA;
+                        document.getElementById('scoreBInput').value = button.dataset.scoreB;
+                    });
+
+                    // Handle form submission
+                    scoreForm.addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        const matchId = document.getElementById('matchIdField').value;
+                        const scoreA = document.getElementById('scoreAInput').value;
+                        const scoreB = document.getElementById('scoreBInput').value;
+
+                        const formData = new FormData();
+                        formData.append('score_a', scoreA);
+                        formData.append('score_b', scoreB);
+                        formData.append('_token', document.querySelector('meta[name="csrf-token"]')?.content || '');
+
+                        fetch('{{ path("app_rencontre_score", {id: "MATCH_ID"}) }}'.replace('MATCH_ID', matchId), {
+                            method: 'POST',
+                            body: formData
+                        })
+                        .then(response => {
+                            if (response.ok) {
+                                location.reload();
+                            } else {
+                                alert('Erreur lors de l\'enregistrement du score');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('Erreur lors de l\'enregistrement du score');
+                        });
+                    });
+                });
+            </script>
+
+            <!-- Modal for adding players to team -->
+            <div class="modal fade" id="addPlayersModal" tabindex="-1" aria-labelledby="addPlayersModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="addPlayersModalLabel">Ajouter des joueurs à <span id="equipeNameDisplay"></span></h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                        </div>
+                        <div class="modal-body">
+                            <!-- Tabs for user account vs manual participant -->
+                            <ul class="nav nav-tabs mb-3" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="userAccountTab" data-bs-toggle="tab" data-bs-target="#userAccountPane" type="button" role="tab">Utilisateur inscrit</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="manualParticipantTab" data-bs-toggle="tab" data-bs-target="#manualParticipantPane" type="button" role="tab">Participant manuel</button>
+                                </li>
+                            </ul>
+
+                            <div class="tab-content">
+                                <!-- Tab 1: User Account -->
+                                <div class="tab-pane fade show active" id="userAccountPane" role="tabpanel">
+                                    <form method="post" id="addPlayersForm" action="">
+                                        <input type="hidden" name="_token" id="addPlayersToken">
+                                        <input type="hidden" id="addPlayersEquipeId" name="equipe_id">
+                                        <div class="mb-3">
+                                            <label for="playerSelect" class="form-label">Sélectionner un utilisateur</label>
+                                            <select class="form-select" id="playerSelect" name="user_id">
+                                                <option value="">-- Choisir un utilisateur --</option>
+                                                {% if all_users is defined %}
+                                                    {% for user in all_users %}
+                                                        <option value="{{ user.id }}">{{ user.prenom }} {{ user.nom }}</option>
+                                                    {% endfor %}
+                                                {% endif %}
+                                            </select>
+                                        </div>
+                                        <div class="alert alert-info">
+                                            <small>Choisissez un utilisateur inscrit dans le système.</small>
+                                        </div>
+                                        <div class="d-flex gap-2">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                            <button type="submit" class="btn btn-primary">Ajouter l'utilisateur</button>
+                                        </div>
+                                    </form>
+                                </div>
+
+                                <!-- Tab 2: Manual Participant -->
+                                <div class="tab-pane fade" id="manualParticipantPane" role="tabpanel">
+                                    <form method="post" id="addManualParticipantForm" action="">
+                                        <input type="hidden" name="_token" id="addManualParticipantToken">
+                                        <input type="hidden" id="addManualParticipantEquipeId" name="equipe_id">
+                                        <div class="mb-3">
+                                            <label for="manualParticipantName" class="form-label">Nom du participant</label>
+                                            <input type="text" class="form-control" id="manualParticipantName" name="participant_name" placeholder="Ex: Jean Dupont" required>
+                                        </div>
+                                        <div class="alert alert-info">
+                                            <small>Ajoutez un participant qui n'a pas de compte utilisateur (par exemple, un invité ou un participant externe).</small>
+                                        </div>
+                                        <div class="d-flex gap-2">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                            <button type="submit" class="btn btn-primary">Ajouter le participant</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal for editing participant -->
+            <div class="modal fade" id="editParticipantModal" tabindex="-1" aria-labelledby="editParticipantModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="editParticipantModalLabel">Modifier le participant</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                        </div>
+                        <form method="post" id="editParticipantForm">
+                            <input type="hidden" name="_token" id="editParticipantToken">
+                            <input type="hidden" id="equipeIdField" name="equipe_id">
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label for="editParticipantNom" class="form-label">Nom de l'équipe</label>
+                                    <input type="text" class="form-control" id="editParticipantNom" name="nom" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="editParticipantCoach" class="form-label">Coach (optionnel)</label>
+                                    <input type="text" class="form-control" id="editParticipantCoach" name="coach">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="editParticipantContact" class="form-label">Contact (optionnel)</label>
+                                    <input type="text" class="form-control" id="editParticipantContact" name="contact">
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <script>
+                document.getElementById('addPlayersModal').addEventListener('show.bs.modal', function (event) {
+                    const button = event.relatedTarget;
+                    const equipeId = button.getAttribute('data-equipe-id');
+                    const equipeName = button.getAttribute('data-equipe-nom');
+
+                    document.getElementById('equipeNameDisplay').textContent = equipeName;
+                    
+                    // Setup form 1 (user account)
+                    document.getElementById('addPlayersEquipeId').value = equipeId;
+                    const form1 = document.getElementById('addPlayersForm');
+                    form1.action = '{{ path('app_tournoi_add_player', {'id': tournoi.id, 'equipeId': 0}) }}'.replace('0', equipeId);
+                    
+                    // Setup form 2 (manual participant)
+                    document.getElementById('addManualParticipantEquipeId').value = equipeId;
+                    const form2 = document.getElementById('addManualParticipantForm');
+                    form2.action = '{{ path('app_tournoi_add_manual_player', {'id': tournoi.id, 'equipeId': 0}) }}'.replace('0', equipeId);
+                    
+                    // Set CSRF tokens
+                    const existingToken = document.querySelector('input[name="_token"]');
+                    if (existingToken) {
+                        document.getElementById('addPlayersToken').value = existingToken.value;
+                        document.getElementById('addManualParticipantToken').value = existingToken.value;
+                    }
+                });
+
+                document.getElementById('editParticipantModal').addEventListener('show.bs.modal', function (event) {
+                    const button = event.relatedTarget;
+                    const equipeId = button.getAttribute('data-equipe-id');
+                    const equipeName = button.getAttribute('data-equipe-nom');
+                    const equipeCoach = button.getAttribute('data-equipe-coach');
+                    const equipeContact = button.getAttribute('data-equipe-contact');
+
+                    document.getElementById('editParticipantNom').value = equipeName;
+                    document.getElementById('editParticipantCoach').value = equipeCoach;
+                    document.getElementById('editParticipantContact').value = equipeContact;
+                    document.getElementById('equipeIdField').value = equipeId;
+
+                    const form = document.getElementById('editParticipantForm');
+                    const tournoisId = {{ tournoi.id }};
+                    form.action = '{{ path('app_tournoi_edit_participant', {'id': tournoi.id, 'equipeId': 0}) }}'.replace('0', equipeId);
+                    
+                    // Get CSRF token from an existing form or input in the page
+                    const existingToken = document.querySelector('input[name="_token"]');
+                    if (existingToken) {
+                        document.getElementById('editParticipantToken').value = existingToken.value;
+                    }
+                });
+            </script>
+            {% endif %}
+</div>
+{% endblock %}
+

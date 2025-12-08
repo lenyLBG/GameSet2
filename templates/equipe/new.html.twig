@@ -1,0 +1,61 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Créer une nouvelle équipe{% endblock %}
+
+{% block body %}
+    <div class="container mt-5 mb-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h1 class="h3 mb-0">Créer une nouvelle équipe</h1>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text text-muted">
+                            Remplissez les informations ci-dessous pour créer votre équipe. Vous en serez le premier membre.
+                        </p>
+                        
+                        {{ form_start(form, {'attr': {'class': 'needs-validation', 'novalidate': ''}}) }}
+
+                        <div class="mb-3">
+                            {{ form_label(form.nom, 'Nom de l\'équipe', {'label_attr': {'class': 'form-label'}}) }}
+                            {{ form_widget(form.nom, {'attr': {'class': 'form-control', 'placeholder': 'Ex: Les Champions'}}) }}
+                            <div class="invalid-feedback">
+                                {{ form_errors(form.nom) }}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form_label(form.sport, 'Sport', {'label_attr': {'class': 'form-label'}}) }}
+                            {{ form_widget(form.sport, {'attr': {'class': 'form-control', 'placeholder': 'Ex: Football'}}) }}
+                            <div class="invalid-feedback">
+                                {{ form_errors(form.sport) }}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form_label(form.coach, 'Coach (optionnel)', {'label_attr': {'class': 'form-label'}}) }}
+                            {{ form_widget(form.coach, {'attr': {'class': 'form-control', 'placeholder': 'Ex: Jean Dupont'}}) }}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form_label(form.contact, 'Contact (optionnel)', {'label_attr': {'class': 'form-label'}}) }}
+                            {{ form_widget(form.contact, {'attr': {'class': 'form-control', 'placeholder': 'Ex: contact@champions.com'}}) }}
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <a href="{{ path('app_profile') }}" class="btn btn-outline-secondary me-md-2">
+                                <i class="fas fa-arrow-left"></i> Retour au profil
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-plus-circle"></i> {{ button_label|default("Créer l'équipe") }}
+                            </button>
+                        </div>
+
+                        {{ form_end(form) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

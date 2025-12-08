@@ -1,0 +1,68 @@
+<?php
+
+namespace App\Controller;
+
+use App\Entity\User;
+use App\Form\RegistrationFormType;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Routing\Attribute\Route;
+
+class RegistrationController extends AbstractController
+{
+    #[Route('/register', name: 'app_register')]
+    public function register(Request $request, UserPasswordHasherInterface $userPasswordHasher, EntityManagerInterface $entityManager): Response
+    {
+        $user = new User();
+        $form = $this->createForm(RegistrationFormType::class, $user);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            /** @var string $plainPassword */
+            $plainPassword = $form->get('plainPassword')->getData();
+
+            // encode the plain password
+            $user->setPassword($userPasswordHasher->hashPassword($user, $plainPassword));
+
+            $entityManager->persist($user);
+            $entityManager->flush();
+
+            // do anything else you need here, like send an email
+
+            // If this was an AJAX request (modal submit), return JSON so the frontend can react
+            if ($request->isXmlHttpRequest()) {
+                return new JsonResponse(['success' => true, 'redirect' => $this->generateUrl('app_propos')]);
+            }
+
+            return $this->redirectToRoute('app_propos');
+        }
+
+        // If AJAX and form is submitted but invalid, return the rendered fragment with errors
+        if ($request->isXmlHttpRequest() && $form->isSubmitted() && !$form->isValid()) {
+            $html = $this->renderView('registration/_modal_register.html.twig', [
+                'registrationForm' => $form,
+            ]);
+
+            return new JsonResponse(['success' => false, 'html' => $html], 400);
+        }
+
+        return $this->render('registration/register.html.twig', [
+            'registrationForm' => $form,
+        ]);
+    }
+
+    #[Route('/register-modal', name: 'app_register_modal')]
+    public function registerModal(Request $request): Response
+    {
+        $user = new User();
+        $form = $this->createForm(RegistrationFormType::class, $user);
+
+        return $this->render('registration/_modal_register.html.twig', [
+            'registrationForm' => $form,
+        ]);
+    }
+}
