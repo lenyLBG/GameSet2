@@ -151,10 +151,10 @@ Créez la base de données et l'utilisateur pour GameSet :
 CREATE DATABASE gameset CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- Créer un utilisateur dédié
-CREATE USER 'gameset_user'@'localhost' IDENTIFIED BY 'votre_mot_de_passe_securise';
+CREATE USER 'gameset_user'@'ip_de_la_base_de_donnees' IDENTIFIED BY 'votre_mot_de_passe_securise';
 
 -- Accorder tous les privilèges sur la base de données
-GRANT ALL PRIVILEGES ON gameset.* TO 'gameset_user'@'localhost';
+GRANT ALL PRIVILEGES ON gameset.* TO 'gameset_user'@'ip_de_la_base_de_donnees';
 
 -- Recharger les privilèges
 FLUSH PRIVILEGES;
@@ -201,7 +201,7 @@ cp .env .env.local
 
 ```bash
 # .env.local
-DATABASE_URL="mysql://gameset_user:votre_mot_de_passe_securise@127.0.0.1:3306/gameset?serverVersion=11.4-MariaDB&charset=utf8mb4"
+DATABASE_URL="mysql://gameset_user:votre_mot_de_passe_securise@ip_de_la_base_de_donnees:3306/gameset?serverVersion=11.4-MariaDB&charset=utf8mb4"
 ```
 
 Remplacez :
