@@ -14,7 +14,6 @@
     <div class="col-md-6 col-lg-5">
       <div class="card">
         <div class="card-body">
-          <h6 class="card-title mb-3">Tournois créés (6 derniers mois)</h6>
           <canvas id="tournoiChart" height="200"></canvas>
         </div>
       </div>
@@ -24,6 +23,7 @@
 
 <script>
   const ctx = document.getElementById('tournoiChart').getContext('2d');
+
   new Chart(ctx, {
     type: 'line',
     data: {
@@ -39,7 +39,20 @@
         pointBackgroundColor: '#0b0b12'
       }]
     },
-    
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          display: true
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
 </script>
 
 </body>
