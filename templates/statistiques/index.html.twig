@@ -85,7 +85,7 @@
                 <div class="card chart-card" {{ stimulus_controller('chart', { url: path('app_api_stats_tournois') }) }}>
                     <div class="card-body">
                         <h6 class="card-title">Tournois créés (6 derniers mois)</h6>
-                        <canvas data-chart-target="canvas" height="200"></canvas>
+                        {% include 'partials/graph_card.html.twig' %}
                     </div>
                 </div>
             </div>
