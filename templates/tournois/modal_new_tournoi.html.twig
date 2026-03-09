@@ -18,6 +18,11 @@
                     <input type="text" class="form-control" id="sportInput" name="sport" placeholder="Ex: Tennis">
                 </div>
                 <div class="mb-3">
+                    <label>Participant</label>
+                    <select class="form-select" id="ParticipantInput" name="participant">
+                    </select>
+                </div>
+                <div class="mb-3">
                     <label for="formatInput" class="form-label">Format</label>
                     <select class="form-select" id="formatInput" name="format">
                         <option value="">Choisir un format</option>
@@ -34,6 +39,16 @@
                 <div class="mb-3">
                     <label for="dateFin" class="form-label">Date de fin</label>
                     <input type="date" class="form-control" id="dateFin" name="date_fin">
+                </div>
+                <div class="mb-3">
+                    <label>Visibilité</label>
+                    <select name="visibility" class="form-select">
+                        <option value="public">Public</option>
+                        <option value="private">Privé</option>
+                        <option value="lien">Lien uniquement</option>
+
+                    </select>
+
                 </div>
                 <div class="mb-3">
                     <label for="tournoisControlTextarea1" class="form-label">Description</label>
@@ -54,3 +69,16 @@
         </div>
     </div>
 </div>
+
+
+{% block javascripts %}
+    <script>
+        let select = document.getElementById("ParticipantInput");
+        for (let i = 2; i<=32; i += 2) {
+            let option = document.createElement("option");
+            option.value = i;
+            option.text = i;
+            select.appendChild(option);
+        }
+    </script>
+{% endblock %}

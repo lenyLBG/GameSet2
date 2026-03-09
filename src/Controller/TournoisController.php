@@ -16,36 +16,65 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 final class TournoisController extends AbstractController
 {
     #[Route('/tournoi', name: 'app_tournois')]
-    public function index(ManagerRegistry $doctrine): Response
-    {
+public function index(ManagerRegistry $doctrine): Response
+{
     /** @var \App\Repository\TournoiRepository $repo */
     $repo = $doctrine->getRepository(Tournoi::class);
 
-        // read search query from GET param 'q'
-        $q = isset($_GET['q']) ? trim((string) $_GET['q']) : null;
+    $q = isset($_GET['q']) ? trim((string) $_GET['q']) : null;
 
-        // use repository search helper
-        if ($q !== null && $q !== '') {
-            $tournois = $repo->findBySearch($q);
-        } else {
-            $tournois = $repo->findBy([], ['dateDebut' => 'DESC']);
-        }
+    $user = $this->getUser();
 
-        return $this->render('tournois/index.html.twig', [
-            'controller_name' => 'TournoisController',
-            'tournois' => $tournois,
-            'q' => $q,
-        ]);
+    if ($q !== null && $q !== '') {
+        $tournois = $repo->findBySearch($q);
+    } else {
+
+        $qb = $repo->createQueryBuilder('t');
+
+        $qb->where('t.visibility = :public')
+           ->orWhere('t.visibility = :unlisted')
+           ->setParameter('public', 'public')
+           ->setParameter('unlisted', 'unlisted')
+           ->orderBy('t.dateDebut', 'DESC');
+
+        $tournois = $qb->getQuery()->getResult();
     }
+
+    return $this->render('tournois/index.html.twig', [
+        'tournois' => $tournois,
+        'q' => $q,
+    ]);
+}
 
     #[Route('/tournoi/{id}', name: 'app_tournoi_show', methods: ['GET'], requirements: ['id' => '\\d+'])]
     public function show(int $id, ManagerRegistry $doctrine, \App\Service\BracketGenerator $bracketGenerator): Response
     {
         $repo = $doctrine->getRepository(Tournoi::class);
         $tournoi = $repo->find($id);
+        $standing = [];
 
         if (!$tournoi) {
             throw $this->createNotFoundException('Tournoi non trouvé.');
+        }
+        $user = $this->getUser();
+
+        if ($tournoi->getVisibility() === 'private') {
+
+            $isCreator = $user && $tournoi->getCreator() === $user;
+            $isParticipant = false;
+
+            if ($user) {
+                foreach ($tournoi->getEquipes() as $equipe) {
+                    if ($equipe->getUsers()->contains($user)) {
+                        $isParticipant = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!$isCreator && !$isParticipant && !$this->isGranted('ROLE_ADMIN')) {
+                throw $this->createAccessDeniedException('Ce tournoi est privé.');
+            }
         }
 
         // only load pending requests
@@ -129,6 +158,59 @@ final class TournoisController extends AbstractController
             'bracket' => $bracket,
             'all_users' => $allUsers,
         ]);
+
+        if ($tournoi->getFormat() === 'round_robin') {
+
+            // Initialiser les équipes
+            foreach ($tournoi->getEquipes() as $equipe) {
+
+                $standings[$equipe->getId()] = [
+                    'team' => $equipe,
+                    'played' => 0,
+                    'wins' => 0,
+                    'losses' => 0,
+                    'points' => 0
+                ];
+            }
+
+            // Parcourir les matchs
+            foreach ($rencontres as $match) {
+
+                if (!$match->getWinner()) {
+                    continue;
+                }
+
+                $teamA = $match->getEquipes();
+                $teamB = $match->getEquipeVisiteur();
+                $winner = $match->getWinner();
+
+                if (!$teamA || !$teamB) {
+                    continue;
+                }
+
+                $standings[$teamA->getId()]['played']++;
+                $standings[$teamB->getId()]['played']++;
+
+                if ($winner->getId() === $teamA->getId()) {
+
+                    $standings[$teamA->getId()]['wins']++;
+                    $standings[$teamA->getId()]['points'] += 3;
+
+                    $standings[$teamB->getId()]['losses']++;
+
+                } else {
+
+                    $standings[$teamB->getId()]['wins']++;
+                    $standings[$teamB->getId()]['points'] += 3;
+
+                    $standings[$teamA->getId()]['losses']++;
+
+                }
+            }
+
+    // Trier par points
+    usort($standings, fn($a, $b) => $b['points'] <=> $a['points']);
+}
     }
 
     #[Route('/tournoi/{id}/delete', name: 'app_tournoi_delete', methods: ['POST'])]
@@ -181,6 +263,8 @@ final class TournoisController extends AbstractController
         $format = trim((string) $request->request->get('format', ''));
         $dateDebutStr = $request->request->get('date_debut');
         $dateFinStr = $request->request->get('date_fin');
+        $visibility = trim((string) $request->request->get('visibility', 'public'));
+
 
         // Basic validation
         if ($nom === '' || $sport === '') {
@@ -221,7 +305,9 @@ final class TournoisController extends AbstractController
         $user = $this->getUser();
         if ($user) {
             $tournoi->setCreator($user);
-        }
+        };
+        $tournoi->setVisibility($visibility);
+
 
         $em = $doctrine->getManager();
         $em->persist($tournoi);
@@ -261,6 +347,8 @@ final class TournoisController extends AbstractController
             $format = trim((string) $request->request->get('format', ''));
             $dateDebutStr = $request->request->get('date_debut');
             $dateFinStr = $request->request->get('date_fin');
+            $visibility = $request->request->get('visibility', 'public');
+
 
             if ($nom === '' || $sport === '') {
                 $this->addFlash('error', 'Le nom et le sport sont requis.');
@@ -282,6 +370,8 @@ final class TournoisController extends AbstractController
             $tournoi->setNom($nom);
             $tournoi->setSport($sport);
             $tournoi->setFormat($format !== '' ? $format : null);
+            $tournoi->setVisibility($visibility);
+
 
             $em = $doctrine->getManager();
             $em->persist($tournoi);

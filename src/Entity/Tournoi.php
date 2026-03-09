@@ -49,6 +49,15 @@ class Tournoi
     #[ORM\JoinColumn(nullable: true)]
     private ?\App\Entity\Equipe $winner = null;
 
+    #[ORM\Column]
+    private int $participant = 0;
+
+    #[ORM\Column]
+    private int $maxparticipants = 16;
+
+    #[ORM\Column(length: 20)]
+    private ?string $visibility = 'public';
+
     public function getId(): ?int
     {
         return $this->id;
@@ -196,6 +205,42 @@ class Tournoi
     public function setWinner(?\App\Entity\Equipe $winner): static
     {
         $this->winner = $winner;
+
+        return $this;
+    }
+
+    public function getParticipant(): int
+    {
+        return $this->participant;
+    }
+
+    public function setParticipant(int $participant): static
+    {
+        $this->participant = $participant;
+
+        return $this;
+    }
+
+    public function getMaxParticipants(): int
+    {
+        return $this->maxparticipants;
+    }
+
+    public function setMaxParticipants(int $maxparticipants): static
+    {
+        $this->maxparticipants = $maxparticipants;
+
+        return $this;
+    }
+
+    public function getVisibility(): ?string
+    {
+        return $this->visibility;
+    }
+
+    public function setVisibility(string $visibility): static
+    {
+        $this->visibility = $visibility;
 
         return $this;
     }

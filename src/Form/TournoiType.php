@@ -3,6 +3,7 @@
 namespace App\Form;
 
 use App\Entity\Tournoi;
+use phpDocumentor\Reflection\Types\Integer;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -15,6 +16,7 @@ class TournoiType extends AbstractType
         $builder
             ->add('nom')
             ->add('sport')
+            ->add('participant', Integer::class)
             ->add('format', ChoiceType::class, [
                 'choices' => [
                     'Élimination simple' => 'elimination_simple',
@@ -27,6 +29,15 @@ class TournoiType extends AbstractType
             ])
             ->add('dateDebut')
             ->add('dateFin')
+            ->add('visibility', ChoiceType::class, [
+                'choices' => [
+                    'Public' => 'public',
+                    'Privé' => 'private',
+                    'Lien uniquement' => 'unlisted',
+                ],
+                'placeholder' => 'Choisir une visibilité',
+                'required' => true,
+            ])
         ;
     }
 
